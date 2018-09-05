@@ -50,7 +50,7 @@ nPeriods <- 8  ## any number from 3 to 11 is OK, but use 8 to compare results wi
 nets <- nets.all[(len-nPeriods+1):len]
 ```
 
-Set the model formuas for the Part 1 tutorial:
+Set the model formulas for the Part 1 tutorial:
 ```R
 m0 <-   nets ~ edges + gwesp(0, fixed = T) + gwdegree(0, fixed=T) + 
   nodematch("ipo_status", diff = F) + 
