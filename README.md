@@ -18,7 +18,7 @@ In this repository's `R` directory, download the R script `amj_run_TERGM_tutoria
 
 Save the RDS data file     
 - [tutorial_d2_competition_network_sample.rds](https://drive.google.com/file/d/1UqNcj4ci7_V2VRYL0hH9j6Y8bmNrDZfh/view?usp=sharing "Example Competition Network Sample")       
-in the same directory that you save the above script. You can run the script in its entirety simply to get the results, but an explanation of each part is provided below in case you want to change the analysis.
+in the same directory that you save the above script. You can run the script in its entirety simply to get the results, but an explanation of each part is provided below in case you want to change the analysis. 
 
 Set the name of the directory where you saved the data file:
 ```R
