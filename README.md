@@ -69,7 +69,7 @@ m1 <-   nets ~ edges + gwesp(0, fixed = T) + gwdegree(0, fixed=T) +
   cycle(3) + cycle(4) 
 ```
 
-Set the number of bootstrap replications. According to [Leifeld, Cranmer, & Desmarais (2018)](https://www.jstatsoft.org/index.php/jss/article/view/v083i06/v83i06.pdf "Temporal Exponential Random Graph Models with btergm") :
+Set the number of bootstrap replications. According to [Leifeld, Cranmer, & Desmarais (2018)](https://www.jstatsoft.org/article/view/v083i06 "Temporal Exponential Random Graph Models with btergm") :
 - Roughly 100 is enough for an approximate estimate
 - On the order of 1000 or more for reporting results
 ```R
