@@ -111,8 +111,7 @@ texreg::htmlreg(fits, digits = 3, file=compare_file)
 
 You should see results like these:
 
-<iframe>
-<table cellspacing="0" align="center" style="all: none !important;">
+<table cellspacing="0" align="center" style="border: none">
 <caption align="bottom" style="margin-top:0.3em;"></caption>
 <tr>
 <th style="text-align: left; border-top: 2px solid black; border-bottom: 1px solid black; padding-right: 12px;"><b></b></th>
@@ -268,7 +267,6 @@ You should see results like these:
 <td style="padding-right: 12px; border: none;" colspan="4"><span style="font-size:0.8em"><sup>*</sup> 0 outside the confidence interval</span></td>
 </tr>
 </table>
-</iframe>
 
 ## Part 2: Introducing and Cleaning New Network Data
 
