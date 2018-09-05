@@ -10,7 +10,7 @@ This research was supported in part by MOST-105-2420-H-009-012-DR and  MOST-106-
 - [Introduction to Exponential Random Graph Models (ERGM)](http://ranger.uta.edu/~chqding/cse5301/classPapers/ExponentialRandomGraph.pdf  "")    
 - [Computing ERGMs in R](https://www.jstatsoft.org/index.php/jss/article/view/v024i03/v24i03.pdf  "")
 - [Bootstrapped ERGMs for Big Networks in R](https://arxiv.org/pdf/1708.02598.pdf  "")
-- [Temporal ERGMs in R](https://www.jstatsoft.org/index.php/jss/article/view/v083i06/v83i06.pdf "")
+- [Temporal ERGMs (TERGM) in R](https://www.jstatsoft.org/index.php/jss/article/view/v083i06/v83i06.pdf "")
 
 
 ## Part 1: Analyzing Existing Network Data Sample
