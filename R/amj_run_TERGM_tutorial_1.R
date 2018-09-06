@@ -72,7 +72,7 @@ R <- 200  ## enough for a rough estimate
 ## set pseudorandom number generator seed for reproducibility
 set.seed(1111)
 ## estimate the TERGM with bootstrapped PMLE
-fit0 <- btergm(get('m0'), R=R, parallel = "multicore", ncpus = detectCores())
+fit0 <- btergm(m0, R=R, parallel = "multicore", ncpus = detectCores())
 
 ## SAVE SERIALIZED DATA
 fit0_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', firm_i, nPeriods, R, 'm0'))
@@ -86,7 +86,7 @@ saveRDS(fit0, file=fit0_file)
 ## set pseudorandom number generator seed for reproducibility
 set.seed(1111)
 ## estimate the TERGM with bootstrapped PMLE
-fit1 <- btergm(get('m1'), R=R, parallel = "multicore", ncpus = detectCores())  
+fit1 <- btergm(m1, R=R, parallel = "multicore", ncpus = detectCores())  
 
 ## SAVE SERIALIZED DATA
 fit1_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', firm_i, nPeriods, R, 'm1'))
@@ -98,7 +98,7 @@ saveRDS(fit1, file=fit1_file)
 ##------------------------
 
 ## Cache model fits list
-fits <- list(Model_0=m0,Model_1=m1)
+fits <- list(Model_0=fit0,Model_1=fit1)
 
 ## Echo model comparison table to screen
 texreg::screenreg(fits, digits = 3)
