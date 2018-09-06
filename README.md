@@ -81,7 +81,7 @@ Compute the first model `m0` and save to disk as an RDS (serialized) file:
 ## set pseudorandom number generator seed for reproducibility
 set.seed(1111)
 ## estimate the TERGM with bootstrapped PMLE
-fit0 <- btergm(get('m0'), R=R, parallel = "multicore", ncpus = detectCores())
+fit0 <- btergm(m0, R=R, parallel = "multicore", ncpus = detectCores())
 
 ## SAVE SERIALIZED DATA
 fit0_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', firm_i, nPeriods, R, 'm0'))
@@ -93,7 +93,7 @@ Compute the second model `m1` and save to disk as an RDS (serialized) file:
 ## set pseudorandom number generator seed for reproducibility
 set.seed(1111)
 ## estimate the TERGM with bootstrapped PMLE
-fit1 <- btergm(get('m1'), R=R, parallel = "multicore", ncpus = detectCores())  
+fit1 <- btergm(m1, R=R, parallel = "multicore", ncpus = detectCores())  
 
 ## SAVE SERIALIZED DATA
 fit1_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', firm_i, nPeriods, R, 'm1'))
