@@ -27,7 +27,7 @@ Set the name of the directory where you saved the data file:
 ##===============================
 ## SET YOUR DATA DIRECTORY:
 ##   This is the path to the folder where you saved the data file.
-##   If you are using a Windows PC, use double backslash path separators "..\\dir\\subdir\\.."
+##   If you are using a Windows PC, use escaped backslash path separators "..\\dir\\subdir\\.."
 ##-------------------------------
 data_dir <- '/set/your/data/directory/here'
 ```
