@@ -20,16 +20,17 @@ library(texreg)
 ##   This is the path to the folder where you saved the data file.
 ##   If you are using a Windows PC, use double backslash path separators "..\\dir\\subdir\\.."
 ##-------------------------------
-data_dir <- '/set/your/data/directory/here'
+# data_dir <- '/set/your/data/directory/here'
+data_dir <- 'C:\\Users\\T430\\Google Drive\\PhD\\Dissertation\\competition networks\\compnet-awareness-tutorial\\data'
 
 
-
-## analysis parameters
+# ## analysis parameters
 firm_i <- 'qualtrics'  ## focal firm
 d <- 2                 ## ego network theshold (order)
 
 ## load RDS data file into memory as a list of networks
-data_file <- file.path(data_dir,sprintf('%s_d%s.rds',firm_i,d))
+# data_file <- file.path(data_dir,sprintf('%s_d%s.rds',firm_i,d))
+data_file <- file.path(data_dir, 'tutorial_d2_competition_network_sample.rds')
 nets.all <- readRDS(data_file)
 len <- length(nets.all)
 
