@@ -1,30 +1,14 @@
 ---
 title: "amj_run_TERGM_tutorial_1.R"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
 
 ## Tutorial Parts
 - Part 1 (You are here.)
@@ -33,7 +17,26 @@ plot(pressure)
 - [Part 4](https://www.jstatsoft.org/index.php/jss/article/view/v083i06/v83i06.pdf "download")
 
 
-## Part 1: Analyzing Existing Network Data Sample
+# Part 1: Analyzing Existing Network Data Sample
+
+
+```{r pressure, echo=FALSE}
+####################################################
+##
+## Competition Network Analysis Tutorial
+##
+## Part 1. Analyzing Existing Network Data Sample
+##
+####################################################
+
+##===============================
+## If the required libraries are not installed on your computer, run:
+## >  install.packages(c('btergm','parallel','texreg'))
+##-------------------------------
+library(btergm)
+library(parallel)
+library(texreg)
+```
 
 In this repository's `R` directory, download the R script `amj_run_TERGM_tutorial_1.R`. 
 
@@ -52,6 +55,11 @@ Set the name of the directory where you saved the data file:
 data_dir <- '/set/your/data/directory/here'
 ```
 
+```{r data_dir_hide, echo=FALSE}
+data_dir <- 'C:\\Users\\T430\\Google Drive\\PhD\\Dissertation\\competition networks\\compnet-awareness-tutorial\\data'
+```
+
+
 Set parameters for the analysis and load the data into memory:
 ```{r params}
 ## analysis parameters
@@ -59,7 +67,8 @@ firm_i <- 'qualtrics'  ## focal firm
 d <- 2                 ## ego network theshold (order)
 
 ## load RDS data file into memory as a list of networks
-data_file <- file.path(data_dir,sprintf('%s_d%s.rds',firm_i,d))
+# data_file <- file.path(data_dir,sprintf('%s_d%s.rds',firm_i,d))
+data_file <- file.path(data_dir, 'tutorial_d2_competition_network_sample.rds')
 nets.all <- readRDS(data_file)
 len <- length(nets.all)
 
@@ -93,12 +102,12 @@ Set the number of bootstrap replications. According to [Leifeld, Cranmer, & Desm
 - Roughly 100 is enough for an approximate estimate
 - On the order of 1000 or more for reporting results
 
-```R
-R <- 200  ## enough for a rough estimate
+```{r replicates}
+R <- 100  ## enough for a rough estimate
 ```
 
 Compute the first model `m0` and save to disk as an RDS (serialized) file:
-```R
+```{r model1}
 ## set pseudorandom number generator seed for reproducibility
 set.seed(1111)
 ## estimate the TERGM with bootstrapped PMLE
@@ -110,7 +119,7 @@ saveRDS(fit0, file=fit0_file)
 ```
 
 Compute the second model `m1` and save to disk as an RDS (serialized) file:
-```R
+```{r model2}
 ## set pseudorandom number generator seed for reproducibility
 set.seed(1111)
 ## estimate the TERGM with bootstrapped PMLE
@@ -122,16 +131,20 @@ saveRDS(fit1, file=fit1_file)
 ```
 
 Create a list of model fits. Print the regression table to screen and save it as a formatted HTML file.
-```R
+You should see results like these:
+
+```{r model_list}
 ## Cache model fits list
 fits <- list(Model_0=fit0,Model_1=fit1)
 
 ## Echo model comparison table to screen
-texreg::screenreg(fits, digits = 3)
+screenreg(fits, digits = 3)
 
 ## SAVE FORMATTED REGRESSION TABLE
 compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', firm_i, nPeriods, R, 'm0-m1'))
-texreg::htmlreg(fits, digits = 3, file=compare_file)
+htmlreg(fits, digits = 3, file=compare_file)
+
+cat('\nfinished successfully.\n')
 ```
 
-You should see results like these:
+
