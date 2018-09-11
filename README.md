@@ -3,10 +3,10 @@ Competition Network Analysis
 
 Tutorial for computations to replicate the results in Downing, Kang, & Markman (Under Review).
 
-Acknowledgement:
+#### Acknowledgement:
 This research was supported in part by MOST-105-2420-H-009-012-DR and  MOST-106-2922-I-009-127.
 
-### Info 
+#### Info 
 - [Intro to Network Analysis in R](https://statnet.org/trac/raw-attachment/wiki/Resources/introToSNAinR_sunbelt_2012_tutorial.pdf  "link")    
 - [The R network Package](https://www.jstatsoft.org/index.php/jss/article/view/v024i02/v24i02.pdf  "download")    
 - [Intro to Exponential Random Graph Models (ERGM)](http://ranger.uta.edu/~chqding/cse5301/classPapers/ExponentialRandomGraph.pdf  "link")    
@@ -14,7 +14,7 @@ This research was supported in part by MOST-105-2420-H-009-012-DR and  MOST-106-
 - [Bootstrapped ERGMs for Big Networks in R](https://arxiv.org/pdf/1708.02598.pdf  "link")
 - [Temporal ERGMs (TERGM) in R](https://www.jstatsoft.org/index.php/jss/article/view/v083i06/v83i06.pdf "download")
 
-### Parts
+#### Parts
 - [Part 1: Analyzing Existing Network Data Sample](#part-1-analyzing-existing-network-data-sample  "Part 1")
 - [Part 2: Adding and Cleaning New data](#part-2-adding-and-cleaning-new-data  "Part 2")
 - [Part 3: Computing Period Networks and Covariate Lists](#part-3-computing-period-networks-and-covariate-lists  "Part 3")
