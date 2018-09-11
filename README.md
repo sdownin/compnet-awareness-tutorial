@@ -7,7 +7,9 @@ Acknowledgement:
 This research was supported in part by MOST-105-2420-H-009-012-DR and  MOST-106-2922-I-009-127.
 
 ### Info 
-- [Introduction to Exponential Random Graph Models (ERGM)](http://ranger.uta.edu/~chqding/cse5301/classPapers/ExponentialRandomGraph.pdf  "link")    
+- [Intro to Network Analysis in R](https://statnet.org/trac/raw-attachment/wiki/Resources/introToSNAinR_sunbelt_2012_tutorial.pdf  "link")    
+- [The R network Package](https://www.jstatsoft.org/index.php/jss/article/view/v024i02/v24i02.pdf  "download")    
+- [Intro to Exponential Random Graph Models (ERGM)](http://ranger.uta.edu/~chqding/cse5301/classPapers/ExponentialRandomGraph.pdf  "link")    
 - [Computing ERGMs in R](https://www.jstatsoft.org/index.php/jss/article/view/v024i03/v24i03.pdf  "download")
 - [Bootstrapped ERGMs for Big Networks in R](https://arxiv.org/pdf/1708.02598.pdf  "link")
 - [Temporal ERGMs (TERGM) in R](https://www.jstatsoft.org/index.php/jss/article/view/v083i06/v83i06.pdf "download")
