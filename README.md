@@ -100,40 +100,28 @@ fit0 <- btergm(get('m0'), R=R, parallel = "multicore", ncpus = detectCores())
 ```
 ## 
 ## Initial dimensions of the network and covariates:
-```
 
-```
 ##              t=2 t=3 t=4 t=5 t=6 t=7 t=8
 ## nets (row)   180 180 180 180 180 180 180
 ## nets (col)   180 180 180 180 180 180 180
 ## memory (row) 180 180 180 180 180 180 180
 ## memory (col) 180 180 180 180 180 180 180
-```
 
-```
 ## 
 ## All networks are conformable.
-```
 
-```
 ## 
 ## Dimensions of the network and covariates after adjustment:
-```
 
-```
 ##              t=2 t=3 t=4 t=5 t=6 t=7 t=8
 ## nets (row)   180 180 180 180 180 180 180
 ## nets (col)   180 180 180 180 180 180 180
 ## memory (row) 180 180 180 180 180 180 180
 ## memory (col) 180 180 180 180 180 180 180
-```
 
-```
 ## 
 ## Starting pseudolikelihood estimation with 100 bootstrapping replications using multicore forking on 4 cores...
-```
 
-```
 ## Done.
 ```
 
@@ -155,40 +143,28 @@ fit1 <- btergm(get('m1'), R=R, parallel = "multicore", ncpus = detectCores())
 ```
 ## 
 ## Initial dimensions of the network and covariates:
-```
 
-```
 ##              t=2 t=3 t=4 t=5 t=6 t=7 t=8
 ## nets (row)   180 180 180 180 180 180 180
 ## nets (col)   180 180 180 180 180 180 180
 ## memory (row) 180 180 180 180 180 180 180
 ## memory (col) 180 180 180 180 180 180 180
-```
 
-```
 ## 
 ## All networks are conformable.
-```
 
-```
 ## 
 ## Dimensions of the network and covariates after adjustment:
-```
 
-```
 ##              t=2 t=3 t=4 t=5 t=6 t=7 t=8
 ## nets (row)   180 180 180 180 180 180 180
 ## nets (col)   180 180 180 180 180 180 180
 ## memory (row) 180 180 180 180 180 180 180
 ## memory (col) 180 180 180 180 180 180 180
-```
 
-```
 ## 
 ## Starting pseudolikelihood estimation with 100 bootstrapping replications using multicore forking on 4 cores...
-```
 
-```
 ## Done.
 ```
 
@@ -253,9 +229,7 @@ screenreg(fits, digits = 3)
 ## SAVE FORMATTED REGRESSION TABLE
 compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', firm_i, nPeriods, R, 'm0-m1'))
 htmlreg(fits, digits = 3, file=compare_file)
-```
 
-```
 ## 
 ## finished successfully.
 ```
