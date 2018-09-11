@@ -13,10 +13,11 @@ This research was supported in part by MOST-105-2420-H-009-012-DR and  MOST-106-
 - [Temporal ERGMs (TERGM) in R](https://www.jstatsoft.org/index.php/jss/article/view/v083i06/v83i06.pdf "download")
 
 ### Parts
-- [Part 1](#part-1-analyzing-existing-network-data-sample  "Part 1")
-- [Part 2](#part-2-analyzing-existing-network-data-sample  "Part 2")
-- [Part 3](#part-3-analyzing-existing-network-data-sample  "Part 3")
-- [Part 4](#part-4-analyzing-existing-network-data-sample  "Part 4")
+- [Part 1: Analyzing Existing Network Data Sample](#part-1-analyzing-existing-network-data-sample  "Part 1")
+- [Part 2: Adding and Cleaning New data](#part-2-adding-and-cleaning-new-data  "Part 2")
+- [Part 3: Computing Period Networks and Covariate Lists](#part-3-computing-period-networks-and-covariate-lists  "Part 3")
+- [Part 4: Analyzing Updated Network Data Sample](#part-4-analyzing-updated-network-data-sample  "Part 4")
+- [Part 5: Estimation Algorithm, Goodness of Fit, Degeneracy](#part-5-estimation-algorithm-goodness-of-fit-degeneracy  "Part 5")
 
 
 # Part 1: Analyzing Existing Network Data Sample
@@ -234,4 +235,23 @@ htmlreg(fits, digits = 3, file=compare_file)
 ## finished successfully.
 ```
 
+
+# Part 2: Adding and Cleaning New data
+
+Coming soon...
+
+
+# Part 3: Computing Period Networks and Covariate Lists
+
+Coming soon...
+
+
+# Part 4: Analyzing Updated Network Data Sample
+
+Coming soon...
+
+
+# Part 5: Estimation Algorithm, Goodness of Fit, Degeneracy
+
+Coming soon...
 
