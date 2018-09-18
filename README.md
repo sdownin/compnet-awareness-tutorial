@@ -906,10 +906,6 @@ plot(degen0)
 
 ![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_0_plot-1.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_0_plot-2.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_0_plot-3.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_0_plot-4.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_0_plot-5.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_0_plot-6.png)<!-- -->
 
-```r
-par(mfrow=c(1,1))
-```
-
 ![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_0_plot-7.png)<!-- -->
 
 And check degeneracy for `m1`
@@ -1168,10 +1164,6 @@ plot(degen1)
 ```
 
 ![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_1_plot-1.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_1_plot-2.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_1_plot-3.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_1_plot-4.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_1_plot-5.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_1_plot-6.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_1_plot-7.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_1_plot-8.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_1_plot-9.png)<!-- -->![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_1_plot-10.png)<!-- -->
-
-```r
-par(mfrow=c(1,1))
-```
 
 ![](data/amj_run_TERGM_tutorial_1_files/figure-html/degen_1_plot-11.png)<!-- -->
 
