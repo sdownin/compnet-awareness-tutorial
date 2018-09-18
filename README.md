@@ -16,7 +16,7 @@ This research was supported in part by MOST-105-2420-H-009-012-DR and  MOST-106-
 
 #### Contents
 - [Part 1: Analyzing Existing Network Data Sample](#part-1-analyzing-existing-network-data-sample  "Part 1")
-- [Part 2: Estimation Algorithm, Goodness of Fit, Degeneracy](#part-2-goodness-of-fit-degeneracy-estimation-algorithm  "Part 2")
+- [Part 2: Goodness of Fit, Degeneracy, Estimation Algorithm](#part-2-goodness-of-fit-degeneracy-estimation-algorithm  "Part 2")
 - [Part 3: Adding and Cleaning New data](#part-3-adding-and-cleaning-new-data  "Part 3")
 - [Part 4: Computing Period Networks and Covariate Lists](#part-4-computing-period-networks-and-covariate-lists  "Part 4")
 - [Part 5: Analyzing Updated Network Data Sample](#part-5-analyzing-updated-network-data-sample  "Part 5")
@@ -240,6 +240,7 @@ Check goodness of fit for the following diagnostic statistics by simulating `nsi
 - `esp` edge-wise shared partners
 - `degree` degree distribution
 - `geodesic` shortest path distribution
+
 On the order of 1000 to 10,000 networks should be smapled for reporting goodness of fit results, but instruction we briefly simulate 30 per period.
 
 ```r
