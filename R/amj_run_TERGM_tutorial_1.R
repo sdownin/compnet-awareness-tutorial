@@ -109,5 +109,96 @@ compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', 
 texreg::htmlreg(fits, digits = 3, file=compare_file)
 
 
-cat('finished successfully.')
+cat('\nEnd Part 1.\n')
+
+
+##=========================================
+##
+## Part 2. Goodness of Fit, Degeneracy, Estimation Algorithm
+##
+##-----------------------------------------
+
+## Model 0 Goodness of Fit
+gof0 <- gof(fit0, statistics=c(dsp, esp, deg, geodesic), nsim=30)
+print(gof0)
+
+
+## Plot GOF statistics for `m0`
+plot(gof0)
+
+
+##Now compare the GOF for `m1`
+gof1 <- gof(fit1, statistics=c(dsp, esp, deg, geodesic), nsim=30)
+print(gof1)
+
+
+##Plot GOF statistics for `m1`
+plot(gof1)
+
+##Check degeneracy of `m0` with another sample of random networks based on model parameters (instead of the diagnostic statistics used for GOF above).
+degen0 <- checkdegeneracy(fit0, nsim=30)
+print(degen0)
+
+## Plot degeneracy check of `m0` model parameters
+par(mfrow=c(3,3))
+plot(degen0)
+par(mfrow=c(1,1))
+
+
+## check degeneracy for `m1`
+degen1 <- checkdegeneracy(fit1, nsim=30)
+print(degen1)
+
+
+##And plot degeneracy check for `m1`
+par(mfrow=c(3,3))
+plot(degen1)
+par(mfrow=c(1,1))
+
+
+
+### Compare Estimation Algorithms: PMLE vs MCMCMLE
+
+
+## set pseudorandom number generator seed for reproducibility
+set.seed(1111)
+## estimate the TERGM with bootstrapped PMLE
+fit0m <- mtergm(m0, ctrl=control.ergm(seed = 1111))
+
+## SAVE SERIALIZED DATA
+fit0m_file <- file.path(data_dir,sprintf('fit_%s_pd%s_%s.rds', firm_i, nPeriods, 'm0m'))
+saveRDS(fit0m, file=fit0m_file)
+
+
+##Compare PMLE and MCMCMLE results
+## Cache model fits list
+fits <- list(PMLE=fit0, MCMCMLE=fit0m)
+
+## Echo model comparison table to screen
+screenreg(fits, digits = 3)
+
+## SAVE FORMATTED REGRESSION TABLE
+compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', firm_i, nPeriods, R, 'm0PMLE-m0MCMCMLE'))
+htmlreg(fits, digits = 3, file=compare_file)
+
+
+
+##compare the PMLE and MCMCMLE confidence intervals directly
+## Cache model fits list
+fits <- list(PMLE=fit0, MCMCMLE=fit0m)
+
+## Echo model comparison table to screen
+screenreg(fits, digits = 3, ci.force = T, ci.force.level = .95)
+
+## SAVE FORMATTED REGRESSION TABLE
+compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', firm_i, nPeriods, R, 'm0PMLE-m0MCMCMLE_ci'))
+htmlreg(fits, digits = 3, file=compare_file, ci.force = T, ci.force.level = .05)
+
+
+##Finally, check the MCMCMLE diagnostics
+mcmc.diagnostics(fit0m@ergm)
+
+cat('\nEnd Part 2.\n')
+
+
 
