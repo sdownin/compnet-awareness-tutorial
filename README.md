@@ -24,7 +24,7 @@ This research was supported in part by MOST-105-2420-H-009-012-DR and  MOST-106-
 
 # Part 1: Analyzing Existing Network Data Sample
 
-> [Back to Contents](#parts  "Back")
+> [Back to Contents](#contents  "Back")
 
 In this repository's `R` directory, download the R script `amj_run_TERGM_tutorial_1.R`. 
 
@@ -229,7 +229,7 @@ htmlreg(fits, digits = 3, file=compare_file)
 
 # Part 2: Goodness of Fit, Degeneracy, Estimation Algorithm
 
-> [Back to Contents](#parts  "Back")
+> [Back to Contents](#contents  "Back")
 
 Continue using the R script `amj_run_TERGM_tutorial_1.R`. 
 
@@ -1447,20 +1447,20 @@ That concludes part 2.
 
 # Part 3: Adding and Cleaning New data
 
-> [Back to Contents](#parts  "Back")
+> [Back to Contents](#contents  "Back")
 
 Coming soon...
 
 
 # Part 4: Computing Period Networks and Covariate Lists
 
-> [Back to Contents](#parts  "Back")
+> [Back to Contents](#contents  "Back")
 
 Coming soon...
 
 
 # Part 5: Analyzing Updated Network Data Sample
 
-> [Back to Contents](#parts  "Back")
+> [Back to Contents](#contents  "Back")
 
 Coming soon...
