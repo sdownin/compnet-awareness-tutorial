@@ -14,7 +14,7 @@ This research was supported in part by MOST-105-2420-H-009-012-DR and  MOST-106-
 - [Bootstrapped ERGMs for Big Networks in R](https://arxiv.org/pdf/1708.02598.pdf  "link")
 - [Temporal ERGMs (TERGM) in R](https://www.jstatsoft.org/index.php/jss/article/view/v083i06/v83i06.pdf "download")
 
-#### Parts
+#### Contents
 - [Part 1: Analyzing Existing Network Data Sample](#part-1-analyzing-existing-network-data-sample  "Part 1")
 - [Part 2: Estimation Algorithm, Goodness of Fit, Degeneracy](#part-2-goodness-of-fit-degeneracy-estimation-algorithm  "Part 2")
 - [Part 3: Adding and Cleaning New data](#part-3-adding-and-cleaning-new-data  "Part 3")
