@@ -227,7 +227,7 @@ htmlreg(fits, digits = 3, file=compare_file)
 
 # Part 2: Goodness of Fit, Degeneracy, Estimation Algorithm
 
-> [Back to Contents](#parts  "Parts")
+> [Back to Contents](#parts  "Back")
 
 Continue using the R script `amj_run_TERGM_tutorial_1.R`. 
 
@@ -1453,16 +1453,20 @@ That concludes part 2.
 
 # Part 3: Adding and Cleaning New data
 
-> [Back to Contents](#parts  "Parts")
+> [Back to Contents](#parts  "Back")
 
 Coming soon...
 
 
 # Part 4: Computing Period Networks and Covariate Lists
 
+> [Back to Contents](#parts  "Back")
+
 Coming soon...
 
 
 # Part 5: Analyzing Updated Network Data Sample
+
+> [Back to Contents](#parts  "Back")
 
 Coming soon...
