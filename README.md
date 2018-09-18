@@ -227,6 +227,8 @@ htmlreg(fits, digits = 3, file=compare_file)
 
 # Part 2: Goodness of Fit, Degeneracy, Estimation Algorithm
 
+> [Back to Contents](#parts  "Parts")
+
 Continue using the R script `amj_run_TERGM_tutorial_1.R`. 
 
 #### Goodness of Fit (GOF)
@@ -1450,6 +1452,8 @@ That concludes part 2.
 
 
 # Part 3: Adding and Cleaning New data
+
+> [Back to Contents](#parts  "Parts")
 
 Coming soon...
 
