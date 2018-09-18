@@ -111,7 +111,7 @@ Compute the first model `m0` and save to disk as an RDS (serialized) file:
 ## set pseudorandom number generator seed for reproducibility
 set.seed(1111)
 ## estimate the TERGM with bootstrapped PMLE
-fit0 <- btergm(get('m0'), R=R, parallel = "multicore", ncpus = detectCores())
+fit0 <- btergm(m0, R=R, parallel = "multicore", ncpus = detectCores())
 
 ## SAVE SERIALIZED DATA
 fit0_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', firm_i, nPeriods, R, 'm0'))
@@ -123,7 +123,7 @@ Compute the second model `m1` and save to disk as an RDS (serialized) file:
 ## set pseudorandom number generator seed for reproducibility
 set.seed(1111)
 ## estimate the TERGM with bootstrapped PMLE
-fit1 <- btergm(get('m1'), R=R, parallel = "multicore", ncpus = detectCores())  
+fit1 <- btergm(m1, R=R, parallel = "multicore", ncpus = detectCores())  
 
 ## SAVE SERIALIZED DATA
 fit1_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', firm_i, nPeriods, R, 'm1'))
@@ -144,7 +144,80 @@ screenreg(fits, digits = 3)
 compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', firm_i, nPeriods, R, 'm0-m1'))
 htmlreg(fits, digits = 3, file=compare_file)
 
-cat('\nfinished successfully.\n')
+##cat('\nfinished successfully.\n')
+```
+
+### Check Goodness of Fit (GOF) and Degeneracy Checks
+
+Check goodness of fit for the following diagnostic statistics by simulating `nsim` number of random networks from model `m0`:
+- `dsp` dyad-wise shared partners
+- `esp` edge-wise shared partners
+- `degree` degree distribution
+- `geodesic` shortest path distribution
+On the order of 1000 to 10,000 networks should be smapled for reporting goodness of fit results, but instruction we briefly simulate 30 per period.
+```{r gof_0}
+gof0 <- gof(fit0, statistics=c(dsp, esp, deg, geodesic), nsim=30)
+
+print(gof0)
+```
+
+Plot GOF statistics
+```{r gof_0_plot}
+plot(gof0)
+```
+
+Check degeneracy with another sample of random networks based on model parameters (instead of the diagnostic statistics used in the GOF above).
+
+
+### Compare Estimation Algorithms: PMLE vs MCMCMLE
+
+Compute the first model `m0` again but this time using MCMCMLE (instead of bootstrapped PMLE) and save to disk as an RDS (serialized) file:
+```{r model02}
+## set pseudorandom number generator seed for reproducibility
+set.seed(1111)
+## estimate the TERGM with bootstrapped PMLE
+fit0m <- mtergm(m0, ctrl=control.ergm(seed = 1111))
+
+## SAVE SERIALIZED DATA
+fit0m_file <- file.path(data_dir,sprintf('fit_%s_pd%s_%s.rds', firm_i, nPeriods, 'm0m'))
+saveRDS(fit0m, file=fit0m_file)
+```
+
+Compare PMLE and MCMCMLE results
+```{r model0_02_compare}
+## Cache model fits list
+fits <- list(PMLE=fit0, MCMCMLE=fit0m)
+
+## Echo model comparison table to screen
+screenreg(fits, digits = 3)
+
+## SAVE FORMATTED REGRESSION TABLE
+compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', firm_i, nPeriods, R, 'm0PMLE-m0MCMCMLE'))
+htmlreg(fits, digits = 3, file=compare_file)
+```
+
+
+And compare the PMLE and MCMCMLE confidence intervals directly
+```{r model0_02_compare_ci}
+## Cache model fits list
+fits <- list(PMLE=fit0, MCMCMLE=fit0m)
+
+## Echo model comparison table to screen
+screenreg(fits, digits = 3, ci.force = T, ci.force.level = .95)
+
+## SAVE FORMATTED REGRESSION TABLE
+compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', firm_i, nPeriods, R, 'm0PMLE-m0MCMCMLE_ci'))
+htmlreg(fits, digits = 3, file=compare_file, ci.force = T, ci.force.level = .05)
+```
+
+Check MCMCMLE Diagnostics
+```{r mcmc_diag}
+mcmc.diagnostics(fit0m@ergm)
+```
+
+Check MCMCMLE Diagnostics
+```{r mcmc_diag}
+checkdegeneracy(fit0m@ergm)
 ```
 
 
