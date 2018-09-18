@@ -235,7 +235,7 @@ Continue using the R script `amj_run_TERGM_tutorial_1.R`.
 
 #### Goodness of Fit (GOF)
 
-Check `m0` goodness of fit for the following diagnostic statistics by simulating `nsim` number of random networks from model `m0`:
+Check goodness of fit for the following diagnostic statistics by simulating `nsim` number of random networks from model `m0`:
 - `dsp` dyad-wise shared partners
 - `esp` edge-wise shared partners
 - `degree` degree distribution
