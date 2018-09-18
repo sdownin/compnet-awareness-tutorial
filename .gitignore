@@ -32,3 +32,5 @@ glmmadmb/*
 # CPython bitcode cache
 python/__pycache__/*
 
+# include images in tutorial dir
+!data/amj_run_TERGM_tutorial_1_files/figure-html/**

@@ -149,7 +149,7 @@ htmlreg(fits, digits = 3, file=compare_file)
 
 ### Check Goodness of Fit (GOF) and Degeneracy Checks
 
-Check goodness of fit for the following diagnostic statistics by simulating `nsim` number of random networks from model `m0`:
+Check `m0` goodness of fit for the following diagnostic statistics by simulating `nsim` number of random networks from model `m0`:
 - `dsp` dyad-wise shared partners
 - `esp` edge-wise shared partners
 - `degree` degree distribution
@@ -161,17 +161,57 @@ gof0 <- gof(fit0, statistics=c(dsp, esp, deg, geodesic), nsim=30)
 print(gof0)
 ```
 
-Plot GOF statistics
+Plot GOF statistics for `m0`
 ```{r gof_0_plot}
 plot(gof0)
 ```
 
-Check degeneracy with another sample of random networks based on model parameters (instead of the diagnostic statistics used in the GOF above).
+Now compare the GOF for `m1`
+```{r gof_1}
+gof1 <- gof(fit1, statistics=c(dsp, esp, deg, geodesic), nsim=30)
+
+print(gof1)
+```
+
+Plot GOF statistics for `m1`
+```{r gof_1_plot}
+plot(gof1)
+```
+
+Check degeneracy of `m0` with another sample of random networks based on model parameters (instead of the diagnostic statistics used for GOF above).
+```{r degen_0}
+degen0 <- checkdegeneracy(fit0, nsim=30)
+
+print(degen0)
+```
+
+Plot degeneracy check of `m0` model parameters
+```{r degen_0_plot}
+par(mfrow=c(3,3))
+plot(degen0)
+par(mfrow=c(1,1))
+```
+
+And check degeneracy for `m1`
+```{r degen_1}
+degen1 <- checkdegeneracy(fit1, nsim=30)
+
+print(degen1)
+```
+
+And plot degeneracy check for `m1`
+```{r degen_1_plot}
+par(mfrow=c(3,3))
+plot(degen1)
+par(mfrow=c(1,1))
+```
 
 
 ### Compare Estimation Algorithms: PMLE vs MCMCMLE
 
-Compute the first model `m0` again but this time using MCMCMLE (instead of bootstrapped PMLE) and save to disk as an RDS (serialized) file:
+For instructional purposes, we will only compare the estamation algofirthm for the first model `m0`.  You may repeat the same steps as needed to compare other models.
+
+Compute the first model `m0` again using MCMCMLE (instead of bootstrapped PMLE) and save to disk as an RDS (serialized) file:
 ```{r model02}
 ## set pseudorandom number generator seed for reproducibility
 set.seed(1111)
@@ -210,14 +250,10 @@ compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', 
 htmlreg(fits, digits = 3, file=compare_file, ci.force = T, ci.force.level = .05)
 ```
 
-Check MCMCMLE Diagnostics
+Finally, check the MCMCMLE diagnostics
 ```{r mcmc_diag}
 mcmc.diagnostics(fit0m@ergm)
 ```
 
-Check MCMCMLE Diagnostics
-```{r mcmc_diag}
-checkdegeneracy(fit0m@ergm)
-```
-
+This completes Part 1.
 
