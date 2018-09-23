@@ -241,7 +241,7 @@ Check goodness of fit for the following diagnostic statistics by simulating `nsi
 - `degree` degree distribution
 - `geodesic` shortest path distribution
 
-On the order of 1000 to 10,000 networks should be smapled for reporting goodness of fit results, but instruction we briefly simulate 30 per period.
+On the order of 1,000 to 10,000 networks should be sampled for reporting goodness of fit results, but for instruction we briefly simulate 30 per period.
 
 ```r
 gof0 <- gof(fit0, statistics=c(dsp, esp, deg, geodesic), nsim=30)
