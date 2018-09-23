@@ -15,14 +15,14 @@ This research was supported in part by MOST-105-2420-H-009-012-DR and  MOST-106-
 - [Temporal ERGMs (TERGM) in R](https://www.jstatsoft.org/index.php/jss/article/view/v083i06/v83i06.pdf "download")
 
 #### Contents
-- [Part 1: Analyzing Existing Network Data Sample](#part-1-analyzing-existing-network-data-sample  "Part 1")
+- [Part 1: Analyzing Example Network Data Sample](#part-1-analyzing-example-network-data-sample  "Part 1")
 - [Part 2: Goodness of Fit, Degeneracy, Estimation Algorithm](#part-2-goodness-of-fit-degeneracy-estimation-algorithm  "Part 2")
 - [Part 3: Adding and Cleaning New data](#part-3-adding-and-cleaning-new-data  "Part 3")
 - [Part 4: Computing Period Networks and Covariate Lists](#part-4-computing-period-networks-and-covariate-lists  "Part 4")
 - [Part 5: Analyzing Updated Network Data Sample](#part-5-analyzing-updated-network-data-sample  "Part 5")
 
 
-# Part 1: Analyzing Existing Network Data Sample
+# Part 1: Analyzing Example Network Data Sample
 
 > [Back to Contents](#contents  "Back")
 
