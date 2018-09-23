@@ -1171,7 +1171,7 @@ plot(degen1)
 
 #### Compare Estimation Algorithms: PMLE vs MCMCMLE
 
-For instructional purposes, we will only compare the estamation algofirthm for the first model `m0`.  You may repeat the same steps as needed to compare other models.
+For instructional purposes, we will only compare the estamation algorithm for the first model `m0`.  You may repeat the same steps as needed to compare other models.
 
 Compute the first model `m0` again using MCMCMLE (instead of bootstrapped PMLE) and save to disk as an RDS (serialized) file:
 
