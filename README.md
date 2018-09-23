@@ -1272,10 +1272,6 @@ compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', 
 htmlreg(fits, digits = 3, file=compare_file)
 ```
 
-```
-## The table was written to the file 'C:\Users\T430\Google Drive\PhD\Dissertation\competition networks\compnet-awareness-tutorial\data/qualtrics_tergm_results_pd8_R100_m0PMLE-m0MCMCMLE.html'.
-```
-
 And compare the PMLE and MCMCMLE confidence intervals directly
 
 ```r
@@ -1319,10 +1315,6 @@ screenreg(fits, digits = 3, ci.force = T, ci.force.level = .95)
 ## SAVE FORMATTED REGRESSION TABLE
 compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', firm_i, nPeriods, R, 'm0PMLE-m0MCMCMLE_ci'))
 htmlreg(fits, digits = 3, file=compare_file, ci.force = T, ci.force.level = .05)
-```
-
-```
-## The table was written to the file 'C:\Users\T430\Google Drive\PhD\Dissertation\competition networks\compnet-awareness-tutorial\data/qualtrics_tergm_results_pd8_R100_m0PMLE-m0MCMCMLE_ci.html'.
 ```
 
 Finally, check the MCMCMLE diagnostics
