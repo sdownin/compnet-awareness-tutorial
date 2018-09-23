@@ -15,14 +15,14 @@ This research was supported in part by MOST-105-2420-H-009-012-DR and  MOST-106-
 - [Temporal ERGMs (TERGM) in R](https://www.jstatsoft.org/index.php/jss/article/view/v083i06/v83i06.pdf "download")
 
 #### Contents
-- [Part 1: Analyzing Existing Network Data Sample](#part-1-analyzing-existing-network-data-sample  "Part 1")
+- [Part 1: Analyzing Example Network Data Sample](#part-1-analyzing-example-network-data-sample  "Part 1")
 - [Part 2: Goodness of Fit, Degeneracy, Estimation Algorithm](#part-2-goodness-of-fit-degeneracy-estimation-algorithm  "Part 2")
 - [Part 3: Adding and Cleaning New data](#part-3-adding-and-cleaning-new-data  "Part 3")
 - [Part 4: Computing Period Networks and Covariate Lists](#part-4-computing-period-networks-and-covariate-lists  "Part 4")
 - [Part 5: Analyzing Updated Network Data Sample](#part-5-analyzing-updated-network-data-sample  "Part 5")
 
 
-# Part 1: Analyzing Existing Network Data Sample
+# Part 1: Analyzing Example Network Data Sample
 
 > [Back to Contents](#contents  "Back")
 
@@ -241,7 +241,7 @@ Check goodness of fit for the following diagnostic statistics by simulating `nsi
 - `degree` degree distribution
 - `geodesic` shortest path distribution
 
-On the order of 1000 to 10,000 networks should be sampled for reporting goodness of fit results, but instruction we briefly simulate 30 per period.
+On the order of 1,000 to 10,000 networks should be sampled for reporting goodness of fit results, but for instruction we briefly simulate 30 per period.
 
 ```r
 gof0 <- gof(fit0, statistics=c(dsp, esp, deg, geodesic), nsim=30)
@@ -1171,7 +1171,7 @@ plot(degen1)
 
 #### Compare Estimation Algorithms: PMLE vs MCMCMLE
 
-For instructional purposes, we will only compare the estamation algofirthm for the first model `m0`.  You may repeat the same steps as needed to compare other models.
+For instructional purposes, we will only compare the estamation algorithm for the first model `m0`.  You may repeat the same steps as needed to compare other models.
 
 Compute the first model `m0` again using MCMCMLE (instead of bootstrapped PMLE) and save to disk as an RDS (serialized) file:
 
@@ -1272,10 +1272,6 @@ compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', 
 htmlreg(fits, digits = 3, file=compare_file)
 ```
 
-```
-## The table was written to the file 'C:\Users\T430\Google Drive\PhD\Dissertation\competition networks\compnet-awareness-tutorial\data/qualtrics_tergm_results_pd8_R100_m0PMLE-m0MCMCMLE.html'.
-```
-
 And compare the PMLE and MCMCMLE confidence intervals directly
 
 ```r
@@ -1319,10 +1315,6 @@ screenreg(fits, digits = 3, ci.force = T, ci.force.level = .95)
 ## SAVE FORMATTED REGRESSION TABLE
 compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', firm_i, nPeriods, R, 'm0PMLE-m0MCMCMLE_ci'))
 htmlreg(fits, digits = 3, file=compare_file, ci.force = T, ci.force.level = .05)
-```
-
-```
-## The table was written to the file 'C:\Users\T430\Google Drive\PhD\Dissertation\competition networks\compnet-awareness-tutorial\data/qualtrics_tergm_results_pd8_R100_m0PMLE-m0MCMCMLE_ci.html'.
 ```
 
 Finally, check the MCMCMLE diagnostics
