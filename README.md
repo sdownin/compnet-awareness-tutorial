@@ -1442,7 +1442,21 @@ That concludes part 2.
 
 > [Back to Contents](#contents  "Back")
 
-First let's take a look at the a single period network data structure
+
+
+In this repository's `R` directory, download the R script `amj_run_TERGM_tutorial_3.R`. 
+
+Create a new folder in your `data_dir` and title it `owler_dir`. If you want to change the name of this new folder, then don't forget to update the `owler_data` variable in the `amj_run_TERGM_tutorial_3.R` script.
+
+Download your owler data file(s) as a CSV file(s) from the Google Doc
+
+- [COMPNET-MASTER Owler Data](https://docs.google.com/spreadsheets/d/1jmOI_byTPlznzbbkIcgCRZ2SbvLzs2q9SI6rI8xJFE0/edit?usp=sharing "Google Doc")
+
+and save them in your `owler_dir` directory. 
+
+You can download 1 or multiple CSV files; the script below can process 1 file and also combine multiple files.
+
+Before working on the data let's take a look at a single period network data structure
 ```r
 net <- nets[[1]]
 print(net)
@@ -1498,8 +1512,12 @@ print(net[1:4,1:4])
 ## allegiance                  0         0       0          0
 ```
 
+After saving the CSV data files in the the new `owler_dir`, you can run the `s` script to process and combine the file(s). 
 
-Now combine all new data files and output the new verticex and edge lists
+This script will create (or overwrite) 2 new files in your `data_dir`
+ - `owler_edge_list` Edge list of competitive relations
+ - `owler_vertex_list` Vertex list of firm attributes
+
 
 ```r
 ## missing value strings to convert to <NA> type in imported data file
@@ -1510,10 +1528,10 @@ na.strings <- c('NA', 'na', '')
 ##------------------------------------
 
 ## new data directory name
-ower_data_dir <- 'owler_data'
+owler_data_dir <- 'owler_data'
 
 ## new data directory
-owler_dir <- file.path(data_dir,ower_data_dir)
+owler_dir <- file.path(data_dir,owler_data_dir)
 
 ## init new dataframes
 vt <- data.frame()  #vertices

@@ -23,7 +23,7 @@ library(texreg)
 # data_dir <- '/set/your/data/directory/here'
 data_dir <- 'C:\\Users\\T430\\Google Drive\\PhD\\Dissertation\\competition networks\\compnet-awareness-tutorial\\data'
 ## new data directory name
-ower_data_dir <- 'owler_data'
+owler_data_dir <- 'owler_data'
 
 
 # ## analysis parameters
@@ -60,7 +60,7 @@ na.strings <- c('NA', 'na', '')
 ##------------------------------------
 
 ## new data directory
-owler_dir <- file.path(data_dir,ower_data_dir)
+owler_dir <- file.path(data_dir,owler_data_dir)
 
 ## init new dataframes
 vt <- data.frame()  #vertices
