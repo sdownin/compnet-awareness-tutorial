@@ -1,0 +1,251 @@
+---
+title: "amj_run_TERGM_tutorial_3.R"
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Tutorial Parts
+- Part 1 (You are here.)
+- [Part 2](https://www.jstatsoft.org/index.php/jss/article/view/v024i03/v24i03.pdf  "download")
+- [Part 3](https://arxiv.org/pdf/1708.02598.pdf  "link")
+- [Part 4](https://www.jstatsoft.org/index.php/jss/article/view/v083i06/v83i06.pdf "download")
+
+
+# Part 1: Analyzing Existing Network Data Sample
+
+
+```{r pressure, echo=FALSE}
+##===============================
+## If the required libraries are not installed on your computer, run:
+## >  install.packages(c('btergm','parallel','texreg'))
+##-------------------------------
+library(btergm)
+library(parallel)
+library(texreg)
+```
+
+In this repository's `R` directory, download the R script `amj_run_TERGM_tutorial_1.R`. 
+
+Download and save the following RDS (serialized) data file     
+- [tutorial_d2_competition_network_sample.rds](https://drive.google.com/file/d/1DcpV0tomKyeY4BUsWcBZ1WSOIYOxPYMG/view?usp=sharing "Example Competition Network Sample")
+
+in the same directory that you save the above script. You can run the script in its entirety simply to get the results, but an explanation of each part is provided below in case you want to change the analysis. 
+
+Set the name of the directory where you saved the data file:
+```{r data_dir}
+##===============================
+## SET YOUR DATA DIRECTORY:
+##   This is the path to the folder where you saved the data file.
+##   If you are using a Windows PC, use double backslash path separators "..\\dir\\subdir\\.."
+##-------------------------------
+data_dir <- '/set/your/data/directory/here'
+```
+
+```{r data_dir_hide, echo=FALSE}
+data_dir <- 'C:\\Users\\T430\\Google Drive\\PhD\\Dissertation\\competition networks\\compnet-awareness-tutorial\\data'
+```
+
+
+Set parameters for the analysis and load the data into memory:
+```{r params}
+## analysis parameters
+firm_i <- 'qualtrics'  ## focal firm
+d <- 2                 ## ego network theshold (order)
+
+## load RDS data file into memory as a list of networks
+# data_file <- file.path(data_dir,sprintf('%s_d%s.rds',firm_i,d))
+data_file <- file.path(data_dir, 'tutorial_d2_competition_network_sample.rds')
+nets.all <- readRDS(data_file)
+len <- length(nets.all)
+
+## set number of time periods
+nPeriods <- 8  ## any number from 3 to 11 is OK, but use 8 to compare results with example
+
+## subset network periods
+nets <- nets.all[(len-nPeriods+1):len]
+```
+
+Set the model formulas for the Part 1 tutorial:
+```{r models}
+m0 <-   nets ~ edges + gwesp(0, fixed = T) + gwdegree(0, fixed=T) + 
+  nodematch("ipo_status", diff = F) + 
+  nodematch("state_code", diff = F) + 
+  nodecov("age") + absdiff("age") + 
+  memory(type = "stability", lag = 1)
+
+m1 <-   nets ~ edges + gwesp(0, fixed = T) + gwdegree(0, fixed=T) + 
+  nodematch("ipo_status", diff = F) + 
+  nodematch("state_code", diff = F) + 
+  nodecov("age") + absdiff("age") + 
+  nodecov("cent_deg") +
+  memory(type = "stability", lag = 1) + 
+  nodecov("genidx_multilevel") + 
+  nodecov("cent_pow_n0_4") + absdiff("cent_pow_n0_4") + 
+  cycle(3) + cycle(4) 
+```
+
+Set the number of bootstrap replications. According to [Leifeld, Cranmer, & Desmarais (2018)](https://www.jstatsoft.org/article/view/v083i06 "Temporal Exponential Random Graph Models with btergm") :
+- Roughly 100 is enough for an approximate estimate
+- On the order of 1000 or more for reporting results
+
+```{r replicates}
+R <- 100  ## enough for a rough estimate
+```
+
+Compute the first model `m0` and save to disk as an RDS (serialized) file:
+```{r model1}
+## set pseudorandom number generator seed for reproducibility
+set.seed(1111)
+## estimate the TERGM with bootstrapped PMLE
+fit0 <- btergm(m0, R=R, parallel = "multicore", ncpus = detectCores())
+
+## SAVE SERIALIZED DATA
+fit0_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', firm_i, nPeriods, R, 'm0'))
+saveRDS(fit0, file=fit0_file)
+```
+
+Compute the second model `m1` and save to disk as an RDS (serialized) file:
+```{r model2}
+## set pseudorandom number generator seed for reproducibility
+set.seed(1111)
+## estimate the TERGM with bootstrapped PMLE
+fit1 <- btergm(m1, R=R, parallel = "multicore", ncpus = detectCores())  
+
+## SAVE SERIALIZED DATA
+fit1_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', firm_i, nPeriods, R, 'm1'))
+saveRDS(fit1, file=fit1_file)
+```
+
+Create a list of model fits. Print the regression table to screen and save it as a formatted HTML file.
+You should see results like these:
+
+```{r model_list}
+## Cache model fits list
+fits <- list(Model_0=fit0,Model_1=fit1)
+
+## Echo model comparison table to screen
+screenreg(fits, digits = 3)
+
+## SAVE FORMATTED REGRESSION TABLE
+compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', firm_i, nPeriods, R, 'm0-m1'))
+htmlreg(fits, digits = 3, file=compare_file)
+
+##cat('\nfinished successfully.\n')
+```
+
+### Check Goodness of Fit (GOF) and Degeneracy Checks
+
+Check `m0` goodness of fit for the following diagnostic statistics by simulating `nsim` number of random networks from model `m0`:
+- `dsp` dyad-wise shared partners
+- `esp` edge-wise shared partners
+- `degree` degree distribution
+- `geodesic` shortest path distribution
+On the order of 1000 to 10,000 networks should be smapled for reporting goodness of fit results, but instruction we briefly simulate 30 per period.
+```{r gof_0}
+gof0 <- gof(fit0, statistics=c(dsp, esp, deg, geodesic), nsim=30)
+
+print(gof0)
+```
+
+Plot GOF statistics for `m0`
+```{r gof_0_plot}
+plot(gof0)
+```
+
+Now compare the GOF for `m1`
+```{r gof_1}
+gof1 <- gof(fit1, statistics=c(dsp, esp, deg, geodesic), nsim=30)
+
+print(gof1)
+```
+
+Plot GOF statistics for `m1`
+```{r gof_1_plot}
+plot(gof1)
+```
+
+Check degeneracy of `m0` with another sample of random networks based on model parameters (instead of the diagnostic statistics used for GOF above).
+```{r degen_0}
+degen0 <- checkdegeneracy(fit0, nsim=30)
+
+print(degen0)
+```
+
+Plot degeneracy check of `m0` model parameters
+```{r degen_0_plot}
+par(mfrow=c(3,3))
+plot(degen0)
+par(mfrow=c(1,1))
+```
+
+And check degeneracy for `m1`
+```{r degen_1}
+degen1 <- checkdegeneracy(fit1, nsim=30)
+
+print(degen1)
+```
+
+And plot degeneracy check for `m1`
+```{r degen_1_plot}
+par(mfrow=c(3,3))
+plot(degen1)
+par(mfrow=c(1,1))
+```
+
+
+### Compare Estimation Algorithms: PMLE vs MCMCMLE
+
+For instructional purposes, we will only compare the estamation algofirthm for the first model `m0`.  You may repeat the same steps as needed to compare other models.
+
+Compute the first model `m0` again using MCMCMLE (instead of bootstrapped PMLE) and save to disk as an RDS (serialized) file:
+```{r model02}
+## set pseudorandom number generator seed for reproducibility
+set.seed(1111)
+## estimate the TERGM with bootstrapped PMLE
+fit0m <- mtergm(m0, ctrl=control.ergm(seed = 1111))
+
+## SAVE SERIALIZED DATA
+fit0m_file <- file.path(data_dir,sprintf('fit_%s_pd%s_%s.rds', firm_i, nPeriods, 'm0m'))
+saveRDS(fit0m, file=fit0m_file)
+```
+
+Compare PMLE and MCMCMLE results
+```{r model0_02_compare}
+## Cache model fits list
+fits <- list(PMLE=fit0, MCMCMLE=fit0m)
+
+## Echo model comparison table to screen
+screenreg(fits, digits = 3)
+
+## SAVE FORMATTED REGRESSION TABLE
+compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', firm_i, nPeriods, R, 'm0PMLE-m0MCMCMLE'))
+htmlreg(fits, digits = 3, file=compare_file)
+```
+
+
+And compare the PMLE and MCMCMLE confidence intervals directly
+```{r model0_02_compare_ci}
+## Cache model fits list
+fits <- list(PMLE=fit0, MCMCMLE=fit0m)
+
+## Echo model comparison table to screen
+screenreg(fits, digits = 3, ci.force = T, ci.force.level = .95)
+
+## SAVE FORMATTED REGRESSION TABLE
+compare_file <- file.path(data_dir,sprintf('%s_tergm_results_pd%s_R%s_%s.html', firm_i, nPeriods, R, 'm0PMLE-m0MCMCMLE_ci'))
+htmlreg(fits, digits = 3, file=compare_file, ci.force = T, ci.force.level = .05)
+```
+
+Finally, check the MCMCMLE diagnostics
+```{r mcmc_diag}
+mcmc.diagnostics(fit0m@ergm)
+```
+
+This completes Part 1.
+
