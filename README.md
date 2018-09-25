@@ -1442,14 +1442,11 @@ That concludes part 2.
 
 > [Back to Contents](#contents  "Back")
 
-
-
+First let's take a look at the a single period network data structure
 ```r
 net <- nets[[1]]
 print(net)
-```
 
-```
 ##  Network attributes:
 ##   vertices = 180 
 ##   directed = FALSE 
@@ -1487,22 +1484,13 @@ print(net)
 ## 
 ##  Edge attribute names: 
 ##     relation_began_on relation_ended_on weight
-```
 
-
-```r
 dim(net[,])
-```
 
-```
 ## [1] 180 180
-```
 
-```r
 print(net[1:4,1:4])
-```
 
-```
 ##                123contactform abroad101 actuate allegiance
 ## 123contactform              0         0       0          0
 ## abroad101                   0         0       0          0
@@ -1511,6 +1499,7 @@ print(net[1:4,1:4])
 ```
 
 
+Now combine all new data files and output the new verticex and edge lists
 
 ```r
 ## missing value strings to convert to <NA> type in imported data file
@@ -1584,9 +1573,7 @@ for (file in dir(owler_dir, pattern = '\\.csv$')) {
   }
   
 }
-```
 
-```
 ## 
 ## 
 ## data file Ford.csv
@@ -1611,17 +1598,11 @@ The `target` column is not of the format like `company_name_unique` which must b
 ```r
 ## check vertices
 dim(vt)
-```
 
-```
 ## [1] 724  28
-```
 
-```r
 head(vt)
-```
 
-```
 ##            name company_name_unique founded_year founded_date closed_date
 ## 1          Ford                ford         1963    1963/6/16        <NA>
 ## 2        Toyota       toyota-global         1903    1903/6/17        <NA>
@@ -1671,22 +1652,14 @@ head(vt)
 ## 4       Chrysler           NA            NA  <NA>
 ## 5         Toyota           NA            NA  <NA>
 ## 6 General Motors           NA            NA  <NA>
-```
 
-```r
 ## check edge list
 dim(el)
-```
 
-```
 ## [1] 4122    4
-```
 
-```r
 head(el, 20)
-```
 
-```
 ##           source         target rank weight
 ## 1           ford         Toyota    1      1
 ## 2           ford          Honda    2      1
@@ -1710,9 +1683,7 @@ head(el, 20)
 ## 20         honda     Volkswagen    4      1
 ```
 
-
 We need to update `target` column by using the mapping `name`-->`company_name_unique` that we already have in the vertex dataframe.
-
 
 ```r
 # company name to company_name_unique mapping
@@ -1728,9 +1699,7 @@ el2$target <- el2$target_name_unique
 el2$target_name_unique <- NULL
 
 head(el2)
-```
 
-```
 ##          target        source rank weight
 ## 1 toyota-global      bmwgroup    2      1
 ## 2 toyota-global nissan-global    8      1
@@ -1738,9 +1707,7 @@ head(el2)
 ## 4 toyota-global mercedes-benz    6      1
 ## 5 toyota-global  volkswagenag    1      1
 ## 6 toyota-global    tatamotors    4      1
-```
 
-```r
 ## write edge list to csv file
 el_file <- file.path(data_dir, 'owler_edge_list.csv')
 write.csv(el, file = el_file, row.names = F)
