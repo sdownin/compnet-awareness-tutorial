@@ -1450,7 +1450,7 @@ Create a new folder in your `data_dir` and title it `owler_dir`. If you want to 
 
 Download your owler data file(s) as a CSV file(s) from the Google Doc
 
-- [COMPNET-MASTER Owler Data](https://docs.google.com/spreadsheets/d/1jmOI_byTPlznzbbkIcgCRZ2SbvLzs2q9SI6rI8xJFE0/edit?usp=sharing "Google Doc")
+- [COMPNET-MASTER Owler Data](https://docs.google.com/spreadsheets/d/1jmOI_byTPlznzbbkIcgCRZ2SbvLzs2q9SI6rI8xJFE0/edit?usp=sharing "Google Doc"){:target="_blank"} 
 
 and save them in your `owler_dir` directory. 
 
