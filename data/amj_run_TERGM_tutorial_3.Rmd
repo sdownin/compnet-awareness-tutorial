@@ -169,8 +169,8 @@ el_file <- file.path(data_dir, 'owler_edge_list.csv')
 write.csv(el, file = el_file, row.names = F)
 
 ## write vertex list to csv file
-el_file <- file.path(data_dir, 'owler_vertex_list.csv')
-write.csv(vt, file = el_file, row.names = F)
+vt_file <- file.path(data_dir, 'owler_vertex_list.csv')
+write.csv(vt, file = vt_file, row.names = F)
   
 
 ```

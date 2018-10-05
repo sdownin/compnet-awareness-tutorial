@@ -1,0 +1,105 @@
+---
+title: "amj_run_TERGM_tutorial_4.R"
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Part 4: Computing Period Networks and Covariate Lists
+
+```{r pressure, echo=FALSE}
+##===============================
+## If the required libraries are not installed on your computer, run:
+## >  install.packages(c('btergm','parallel','texreg'))
+##-------------------------------
+library(btergm)
+library(parallel)
+library(texreg)
+library(reshape2)
+library(plyr)
+
+data_dir <- 'C:\\Users\\T430\\Google Drive\\PhD\\Dissertation\\competition networks\\compnet-awareness-tutorial\\data'
+```
+
+
+We need to update `target` column by using the mapping `name`-->`company_name_unique` that we already have in the vertex dataframe.
+
+```{r load_owler_data}
+## missing value strings to convert to <NA> type in imported data file
+na.strings <- c('NA', 'na', '')
+
+##====================================
+## Load New Data from Owler Data Files
+##------------------------------------
+
+## new data directory name
+ower_data_dir <- 'owler_data'
+
+
+## load edge list 
+ow.el <- read.csv(file.path(data_dir, 'owler_edge_list.csv'), na.strings = na.strings, stringsAsFactors = F)
+
+## load vertex list 
+ow.vt <- read.csv(file.path(data_dir, 'owler_vertex_list.csv'), na.strings = na.strings, stringsAsFactors = F)
+
+print(head(ow.vt))
+
+```
+
+
+We need to update `target` column by using the mapping `name`-->`company_name_unique` that we already have in the vertex dataframe.
+
+```{r fix_ipo_date}
+
+
+library(lubridate)
+
+## create ipo date column
+ow.vt$ipo_date2 <- ymd(ow.vt$ipo_date)
+
+
+
+```
+
+
+text
+
+```{r fix_ipo_date}
+
+
+library(lubridate)
+
+## create ipo date column
+ow.vt$ipo_date2 <- ymd(ow.vt$ipo_date)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

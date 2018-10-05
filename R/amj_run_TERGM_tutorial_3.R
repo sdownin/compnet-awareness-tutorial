@@ -103,6 +103,8 @@ for (file in dir(owler_dir, pattern = '\\.csv$')) {
       
       comp_j <- unname(firm_i_comps[j])
       
+      cat(sprintf('%s firm %s, comp %s\n', i, firm_i, comp_j))  ## echo progress
+      
       if (!is.na(comp_j)) {
         tmp_el <- data.frame(source=firm_i, target=comp_j, rank=j, weight=1)
         ## append competitor relation
@@ -111,7 +113,7 @@ for (file in dir(owler_dir, pattern = '\\.csv$')) {
       
     }
     
-    if (i %% 50 == 0) cat(sprintf('firm %s %s\n', i, firm_i))  ## echo progress
+    # if (i %% 50 == 0) cat(sprintf('firm %s %s\n', i, firm_i))  ## echo progress
     
   }
   
@@ -130,6 +132,13 @@ head(el, 20)
 mapping <- vt[,c('name','company_name_unique')]
 names(mapping) <- c('target','target_name_unique')
 
+##========================================
+##
+## NOTE SOME FIRMS DON'T HAVE name to map to company_name_unique
+##  - TODO ??
+##
+##----------------------------------------
+
 ## merge the original edge list and company_name_unique mapping
 el2 <- merge(el, mapping, by.x='target', by.y='target', all.x=T, all.y=F)
 
@@ -142,11 +151,11 @@ head(el2)
 
 ## write edge list to csv file
 el_file <- file.path(data_dir, 'owler_edge_list.csv')
-write.csv(el, file = el_file, row.names = F)
+write.csv(el2, file = el_file, row.names = F)
 
 ## write vertex list to csv file
-el_file <- file.path(data_dir, 'owler_vertex_list.csv')
-write.csv(vt, file = el_file, row.names = F)
+vt_file <- file.path(data_dir, 'owler_vertex_list.csv')
+write.csv(vt, file = vt_file, row.names = F)
 
 
 

@@ -255,7 +255,7 @@ aaf$coopFromConcat <- function(x,y)
 ##
 # Returns current firm-firm alliance/jv count of active cooperative relations in current period
 # @see setCovariates()
-# @param [dataframe] br       
+# @param [network] net     The network object   
 # @param [character[]] firms  The vector of firm names (company_name_unique)
 # @param [integer] end        The ending year (excluded)
 # @return [matrix]
@@ -298,7 +298,7 @@ aaf$.cov.coop <- function(net, coop, company_uuids, end, ...)
 ##
 # Returns past firm-firm alliance/jv count of PAST cooperative relations (not still active)
 # @see setCovariates()
-# @param [dataframe] br       
+# @param [network] net     The network object    
 # @param [character[]] firms  The vector of firm names (company_name_unique)
 # @param [integer] end        The ending year (excluded)
 # @return [matrix]
