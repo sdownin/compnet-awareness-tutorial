@@ -249,7 +249,7 @@ library(stringr, quietly = T)
   # ppl_desc  <- cb$readCsv(file.path(tmp_data_dir, cb$csv$ppl_desc))
   
   
-  cat('done.\nadding Owler data...')
+  cat('done.\nadding Owler data\n')
 
   ##==========================
   ##
@@ -326,7 +326,7 @@ library(stringr, quietly = T)
   ##=================================
   ## 1. Add Owler companies that were not in CrunchBase
   ##---------------------------------
-  cat('1. adding new Owler firms to CrunchBase...\n')
+  cat('1. adding new Owler firms to CrunchBase\n')
   
   ## subset owler companies that are not in CrunchBase 
   idx.cols.ow <- which( ! grepl('competitor_\\d+', names(ow.vt)) & ! names(ow.vt) %in% c('founded_year'))
@@ -411,7 +411,7 @@ library(stringr, quietly = T)
   ##=================================
   ## 2. Add new Owler attribute for companies that were already in CrunchBase
   ##---------------------------------
-  cat('2. adding attributes from Owler to CrunchBase firms...\n')
+  cat('2. adding attributes from Owler to CrunchBase firms\n')
   # idx.ow.in.cb <- which(ow.vt$company_name_unique %in% co$company_name_unique)
   ## subset owler companies that ARE in CrunchBase 
   idx.cols.ow <- which( ! grepl('competitor_\\d+', names(ow.vt)) & ! names(ow.vt) %in% c('founded_year'))
@@ -458,7 +458,7 @@ library(stringr, quietly = T)
   ##==========================
   ## 3. add Acquisition dates and relations from Owler to CrunchBase IPO list
   ##--------------------------
-  cat('3. adding acquisitions from Owler to CrunchBase acquisitions table...\n')
+  cat('3. adding acquisitions from Owler to CrunchBase acquisitions table\n')
   acq_cols <- c('company_name_unique','acquired_by_company_name_unique','acquired_date')
   ow.acq <- ow.vt[!is.na(ow.vt$acquired_date) & !is.na(ow.vt$acquired_by_company_name_unique), acq_cols]
   ## indices of new acquisitions (not currently in CrunchBase acquisitions table)
@@ -482,7 +482,7 @@ library(stringr, quietly = T)
   ##==========================
   ## 4. add IPO dates from Owler to CrunchBase IPO list
   ##--------------------------
-  cat('4. adding IPOs from Owler to CrunchBase IPOs table...\n')
+  cat('4. adding IPOs from Owler to CrunchBase IPOs table\n')
   ipo_cols <- c('name','company_name_unique','ipo_date','stock_symbol_1','stock_symbol_2')
   ow.ipo <- ow.vt[!is.na(ow.vt$ipo_date), ipo_cols]
   ## indices of new acquisitions (not currently in CrunchBase acquisitions table)
@@ -507,7 +507,7 @@ library(stringr, quietly = T)
   ##==========================
   ## 5. add competior relations from Owler to CrunchBase competitor list
   ##--------------------------
-  cat('5. adding competitors from Owler to CrunchBase competitors table...\n')
+  cat('5. adding competitors from Owler to CrunchBase competitors table\n')
   
   ## indices of owler competitor relations not in CrunchBase competitor list
   idx.comp <- which( 
@@ -582,6 +582,7 @@ library(stringr, quietly = T)
   ## FIX CRUNCHBASE DATA COLUMNS
   ##
   ##-------------------------------
+  cat('preparing CrunchBase data\n')
   
   ##==========================
   ## COMPANIES
