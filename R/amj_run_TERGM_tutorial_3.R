@@ -25,7 +25,22 @@ data_dir <- 'C:\\Users\\T430\\Google Drive\\PhD\\Dissertation\\competition netwo
 ## new data directory name
 owler_data_dir <- 'owler_data'
 
-
+##
+#  Assign company_name_unique if missing
+#     from two input columns (company_name, company_name_unique)
+#  @param [string[]|NA[]] x  Vector of two strings|NAs (company_name, company_name_unique)
+#  @return [string company_name_unique
+##
+assignCompanyNameUnique <- function(x=NA)
+{
+  # cat(sprintf('1: %s, 2: %s\n', x[1], x[2]))
+  if (all(is.na(x)))
+    return(NA)
+  name <- ifelse(!is.na(x[2]), x[2], x[1]) ## use company_name_unique if exists, else company_name
+  name <- str_to_lower(name)  ## to lowercase 
+  ## replace non-alphanumeric sequences with a dash "-" and then return
+  return(str_replace_all(name, pattern = '[^A-Za-z0-9]+', replacement = '-'))
+}
 
 ## load RDS data file into memory as a list of networks
 data_file <- file.path(data_dir, 'tutorial_d2_competition_network_sample.rds')
@@ -70,30 +85,31 @@ for (file in dir(owler_dir, pattern = '\\.csv$')) {
   full_file_path <- file.path(owler_dir, file)
   df <- read.csv(full_file_path, stringsAsFactors = F, na.strings = na.strings)
   
-  ## append verices
-  vt <- rbind(vt, df)
+  ## keep columns that are NOT missing all competiors 
+  rows.keep <- apply(df[names(df)[grep('competitor_\\d{1,}',x = names(df))]], 1, function(x) !all(is.na(x)))
+  df <- df[rows.keep,]
   
-  ## select competitor column names of the form: "competitor_<number>"
-  cols <- names(df)
-  compcols <- cols[grep('competitor_\\d{1,}',x = cols)]  ## \\d{1,} is integer of 1+ digits 
+  ## assign company_name_unique if not exists
+  tmp_names_df <- df[, c('name', 'company_name_unique')]
+  df$company_name_unique <- apply(tmp_names_df, 1, assignCompanyNameUnique)
   
   ## if no competitor data columns or missing company_name_unique column, 
   ## then skip to next data file
   if (length(compcols)==0 | !('company_name_unique' %in% names(df)))
     next
   
+  ## append verices
+  vt <- rbind(vt, df)
+  
   ## loop over firms in data file
   for (i in 1:nrow(df)) {
     
     ## firm i 
     firm_i <- df[i, 'company_name_unique']
-    
+
     ## select competitors of firm i 
     firm_i_comps <- unlist(df[i, compcols]) ## unlist from data.frame to vector
     
-    ## skip if firm i has no company_name_unique
-    if (is.na(firm_i))
-      next
     ## skip rows with no competitors included
     if (all(sapply(firm_i_comps, is.na)))
       next
@@ -101,19 +117,27 @@ for (file in dir(owler_dir, pattern = '\\.csv$')) {
     ## loop over each  competitor j of firm i
     for (j in 1:length(firm_i_comps)) {
       
-      comp_j <- unname(firm_i_comps[j])
+      ## competitor j's name
+      comp_j_name <- unname(firm_i_comps[j])
+      ## competitor j's company_name_unique
+      comp_j <- vt$company_name_unique[vt$name==comp_j_name]
       
-      cat(sprintf('%s firm %s, comp %s\n', i, firm_i, comp_j))  ## echo progress
+      ## skip is missing
+      if (length(comp_j)==0) 
+        next
+      if(all(is.na(comp_j_name)) | all(is.na(comp_j))) 
+        next
       
-      if (!is.na(comp_j)) {
-        tmp_el <- data.frame(source=firm_i, target=comp_j, rank=j, weight=1)
-        ## append competitor relation
-        el <- rbind(el, tmp_el)          
-      }
+      # ## echo progress check 
+      # cat(sprintf('%s firm %s, competitor %s\n', i, firm_i, comp_j))  ## echo progress
+      
+      ## append competitor relation      
+      tmp_el <- data.frame(source=firm_i, target=comp_j, rank=j, weight=1)
+      el <- rbind(el, tmp_el)          
       
     }
     
-    # if (i %% 50 == 0) cat(sprintf('firm %s %s\n', i, firm_i))  ## echo progress
+    if (i %% 50 == 0) cat(sprintf('firm %s %s\n', i, firm_i))  ## echo progress
     
   }
   
@@ -128,30 +152,9 @@ head(vt)
 dim(el)
 head(el, 20)
 
-# company name to company_name_unique mapping
-mapping <- vt[,c('name','company_name_unique')]
-names(mapping) <- c('target','target_name_unique')
-
-##========================================
-##
-## NOTE SOME FIRMS DON'T HAVE name to map to company_name_unique
-##  - TODO ??
-##
-##----------------------------------------
-
-## merge the original edge list and company_name_unique mapping
-el2 <- merge(el, mapping, by.x='target', by.y='target', all.x=T, all.y=F)
-
-## replace original target column with new mapped target_name_unique
-el2$target <- el2$target_name_unique
-## finally remove the temporary target_name_unique column
-el2$target_name_unique <- NULL
-
-head(el2)
-
 ## write edge list to csv file
 el_file <- file.path(data_dir, 'owler_edge_list.csv')
-write.csv(el2, file = el_file, row.names = F)
+write.csv(el, file = el_file, row.names = F)
 
 ## write vertex list to csv file
 vt_file <- file.path(data_dir, 'owler_vertex_list.csv')
