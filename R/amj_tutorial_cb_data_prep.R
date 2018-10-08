@@ -453,37 +453,59 @@ library(stringr, quietly = T)
     co[, col] <- NULL
   }
   
-  # 
-  # for (index in idx.ow.in.cb) 
-  # {
-  #   new_firm <- ow.vt[index, ] ## new owler firm to add
-  #   cat(sprintf('owler index %s %s\n',index, new_firm$company_name_unique))
-  #   ## index of firm to update in cruncbhase
-  #   idx.cb <- which(new_firm$company_name_unique == co$company_name_unique)
-  #   ## add metadata
-  #   co$data_source[idx.cb] <- 'crunchbase|owler'
-  #   ## Other owler columns
-  #   added_cols <- c(names(cb2ow), unname(cb2ow), 
-  #                   'founded_year','founded_date','closed_date','acquired_date')
-  #   extra_cols <- owler_cols[ !(owler_cols %in% added_cols) & !grepl('competitor_\\d', owler_cols) ]
-  #   for (col in extra_cols) {
-  #     co[idx.cb, col] <- new_firm[1,col]
-  #   }  
-  # }
   
   ##==========================
-  ## 3. add IPO dates from Owler to CrunchBase IPO list
+  ## 3. add Acquisition dates and relations from Owler to CrunchBase IPO list
   ##--------------------------
-  acq_cols <- c('company_name_unique','acquired_by_company_name_unique','acquired_on')
-  ow.acq <- ow.vt[!is.na(ow.vt$acquired_on) & !is.na(ow.vt$acquired_by_company_name_unique), acq_cols]
-  for (i in 1:nrow(ow.acq)) {
-
+  cat('3. adding acquisitions from Owler to CrunchBase acquisitions table...\n')
+  acq_cols <- c('company_name_unique','acquired_by_company_name_unique','acquired_date')
+  ow.acq <- ow.vt[!is.na(ow.vt$acquired_date) & !is.na(ow.vt$acquired_by_company_name_unique), acq_cols]
+  ## indices of new acquisitions (not currently in CrunchBase acquisitions table)
+  idx.acq <- which( !(ow.acq$acquired_by_company_name_unique %in% co_acq$acquirer_name_unique
+                     & ow.acq$company_name_unique %in% co_acq$acquiree_name_unique))
+  for (i in idx.acq) {
+    acq_i <- ow.acq[i,]
+    n1 <- nrow(co_acq) + 1
+    co_acq[n1, ] <- NA
+    co_acq$acquiree_name_unique[n1] <- acq_i$company_name_unique  ##acquired firm
+    co_acq$acquirer_name_unique[n1] <- acq_i$acquired_by_company_name_unique
+    co_acq$acquired_on[n1] <- acq_i$acquired_date
+    co_acq$acquiree_uuid[n1] <- co$company_uuid[ co$company_name_unique==co_acq$acquiree_name_unique[n1] ]
+    co_acq$acquirer_uuid[n1] <- co$company_uuid[ co$company_name_unique==co_acq$acquirer_name_unique[n1] ]
+    co_acq$acquisition_uuid[n1] <- cb$uuid()
   }
   
   ##==========================
-  ## 4. add Acquisition dates and relations from Owler to CrunchBase IPO list
+  ## 4. add IPO dates from Owler to CrunchBase IPO list
   ##--------------------------
+  cat('4. adding IPOs from Owler to CrunchBase IPOs table...\n')
+  ipo_cols <- c('name','company_name_unique','ipo_date','stock_symbol_1','stock_symbol_2')
+  ow.ipo <- ow.vt[!is.na(ow.vt$ipo_date), ipo_cols]
+  ## indices of new acquisitions (not currently in CrunchBase acquisitions table)
+  idx.ipo <- which( ! ow.ipo$company_name_unique %in% co_ipo$company_name_unique )
   
+  if ( ! 'stock_symbol_2' %in% names(co_ipo))
+    co_ipo$stock_symbol_2 <- NA
+  
+  for (i in idx.ipo) {
+    ipo_i <- ow.ipo[i,]
+    n1 <- nrow(ipo_i) + 1
+    co_ipo[n1, ] <- NA
+    co_ipo$company_name_unique[n1] <- ipo_i$company_name_unique  ##acquired firm
+    co_ipo$name[n1] <- ipo_i$name  ##acquired firm
+    co_ipo$went_public_on[n1] <- ipo_i$ipo_date
+    co_ipo$stock_exchange_symbol[n1] <- ipo_i$stock_symbol_1  ## name of exchange
+    co_ipo$stock_exchange_symbol_2[n1] <- ipo_i$stock_symbol_2 ## name of exchange
+    co_ipo$company_uui[n1] <- co$company_uuid[ co$company_name_unique==co_ipo$company_name_unique[n1] ]
+    co_ipo$ipo_uuid[n1] <- cb$uuid()
+  }
+  
+  
+  ##===============================
+  ##
+  ## FIX CRUNCHBASE DATA COLUMNS
+  ##
+  ##-------------------------------
   
   ##==========================
   ## COMPANIES
