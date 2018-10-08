@@ -158,9 +158,9 @@ for (t in 2:length(periods))
   nl[[t]] <- aaf$makePdNetwork(asNetwork(g.d.sub), periods[t-1], periods[t], isolates.remove = F) 
   
   ## 3. Set Covariates for updated Period Network
-  nl[[t]] <- aaf$setCovariates(nl[[t]], periods[t-1], periods[t],
-                               acq=cb$co_acq,br=cb$co_br,rou=cb$co_rou,ipo=cb$co_ipo,
-                               coop=coop)
+  covlist <- c('age','mmc','dist','ipo_status','constraint','similarity','centrality','generalist')
+  nl[[t]] <- aaf$setCovariates(nl[[t]], periods[t-1], periods[t], covlist=covlist,
+                               acq=cb$co_acq,br=cb$co_br,rou=cb$co_rou,ipo=cb$co_ipo)
   
 }
 
@@ -182,11 +182,11 @@ if (length(nl) > 1) {
 }
 nets <- nets.all[ which(sapply(nets.all, aaf$getNetEcount) > 0) ]
 ## record network sizes
-write.csv(sapply(nets,function(x)length(x$val)), file = sprintf('firm_nets_rnr/%s_d%s.csv',name_i,d))
+write.csv(sapply(nets,function(x)length(x$val)), file = file.path(data_dir,sprintf('%s_d%s.csv',name_i,d)))
 
 #-------------------------------------------------
 
 ## CAREFUL TO OVERWRITE 
-file.rds <- sprintf('firm_nets_rnr/%s_d%d.rds',name_i,d)
+file.rds <- file.path(data_dir,sprintf('%s_d%d.rds',name_i,d))
 saveRDS(nets, file = file.rds)
 
