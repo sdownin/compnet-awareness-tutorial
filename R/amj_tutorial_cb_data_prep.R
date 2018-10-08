@@ -19,7 +19,7 @@ library(lubridate, quietly = T)
 library(stringr, quietly = T)
 
 
-## MAIN CrunchBase DATA PREP FUNCTION
+## MAIN CrunchBase DATA (and Owler data combined) PREP FUNCTION
 ##  - function name beginning with "." not cached in "Global Environment"
 .main.cbdp <- function()
 {
@@ -295,14 +295,16 @@ library(stringr, quietly = T)
   ## assign founded year to date if missing date
   idx.no.founded.date <- which(is.na(ow.vt$founded_date))
   ow.vt[idx.no.founded.date,'founded_date'] <- ow.vt[idx.no.founded.date,'founded_year']  
+  
   ## fix owler dates -- add month and day if missing (use MM=01, DD=01)
   ow.vt$founded_date <- sapply(ow.vt$founded_date, cb$fixDateYMD)
   ow.vt$acquired_date <- sapply(ow.vt$acquired_date, cb$fixDateYMD)
   ow.vt$closed_date <- sapply(ow.vt$closed_date, cb$fixDateYMD)
   
+  
   ##=================================
   ##
-  ## Add Owlder companies to CrunchBase 
+  ## Add Owler companies to CrunchBase 
   ##  - 4 Parts: 1. Owler companies missing from CrunchBase
   ##             2. Attributes (columns) from Owler for companies already in CrunchBase
   ##             3. IPOs list
@@ -366,6 +368,7 @@ library(stringr, quietly = T)
   ## column mapping FROM Crunbhcase TO Owler
   cb2ow <- c(
     company_name = 'owler_name',
+    company_name_unique = 'owler_company_name_unique',
     founded_on = 'owler_founded_date',
     closed_on = 'owler_closed_date',
     acquired_on = 'owler_acquired_date',
