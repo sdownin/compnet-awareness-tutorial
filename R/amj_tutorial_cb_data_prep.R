@@ -19,7 +19,7 @@ library(lubridate, quietly = T)
 library(stringr, quietly = T)
 
 
-## MAIN DATA PREP FUNCTION
+## MAIN CrunchBase DATA PREP FUNCTION
 ##  - function name beginning with "." not cached in "Global Environment"
 .main.cbdp <- function()
 {
@@ -46,12 +46,14 @@ library(stringr, quietly = T)
   ##----------------------------------
   
   ##
-  # Create a Universal Unique ID (example: '0f62f1de-418d-11e3-8a19-cb0ceccb58ec')
-  # @return string
+  # Create a Universal Unique ID (UUID) or Global Unique ID (GUID) 
+  #    according to RFC 4122 standard, example: 
+  #    '0f62f1de-418d-11e3-8a19-cb0ceccb58ec'
+  # @param [any] x   Unused argument included to allow function passed as closure within an iterator
+  # @return [string] 128-bit UUID
   ##
   cb$uuid <- function(x=NA)
   {
-    # return(system('uuidgen', intern=TRUE))
     return(system('uuidgen', intern=TRUE))
   }
   
@@ -196,6 +198,23 @@ library(stringr, quietly = T)
     return(x)
   }
   
+  ##
+  #  Assign company_name_unique if missing
+  #     from two input columns (company_name, company_name_unique)
+  #  @param [string[]|NA[]] x  Vector of two strings|NAs (company_name, company_name_unique)
+  #  @return [string company_name_unique
+  ##
+  cb$assignCompanyNameUnique <- function(x=NA)
+  {
+    # cat(sprintf('1: %s, 2: %s\n', x[1], x[2]))
+    if (all(is.na(x)))
+      return(NA)
+    name <- ifelse(!is.na(x[2]), x[2], x[1]) ## use company_name_unique if exists, else company_name
+    name <- str_to_lower(name)  ## to lowercase 
+    ## replace non-alphanumeric sequences with a dash "-" and then return
+    return(str_replace_all(name, pattern = '[^A-Za-z0-9]+', replacement = '-'))
+  }
+  
 
   ##=================================
   ##  Sources
@@ -263,9 +282,6 @@ library(stringr, quietly = T)
   ## indicate owler source
   ow.vt$source <- 'owler'
   
-  ## cache owler column names
-  owler_cols <- names(ow.vt)
-  
   # ## replace  "/" with "-" in dates (YYYY-MM-DD) 
   # date_cols <- c('founded_date','acquired_date','closed_date')
   # for (date_col in date_cols) {
@@ -276,9 +292,9 @@ library(stringr, quietly = T)
   idx.no.founded.date <- which(is.na(ow.vt$founded_date))
   ow.vt[idx.no.founded.date,'founded_date'] <- ow.vt[idx.no.founded.date,'founded_year']  
   ## fix owler dates -- add month and day if missing (use MM=01, DD=01)
-  ow.vt$founded_on <- sapply(ow.vt$founded_date, cb$fixDateYMD)
-  ow.vt$acquired_on <- sapply(ow.vt$acquired_date, cb$fixDateYMD)
-  ow.vt$closed_on <- sapply(ow.vt$closed_date, cb$fixDateYMD)
+  ow.vt$founded_date <- sapply(ow.vt$founded_date, cb$fixDateYMD)
+  ow.vt$acquired_date <- sapply(ow.vt$acquired_date, cb$fixDateYMD)
+  ow.vt$closed_date <- sapply(ow.vt$closed_date, cb$fixDateYMD)
   
   ##=================================
   ##
@@ -289,18 +305,7 @@ library(stringr, quietly = T)
   ##             4. Acquisitions list
   ##
   ##---------------------------------
-  ## column mapping FROM Crunbhcase TO Owler
-  cb2ow <- c(
-    company_name_unique = 'company_name_unique',
-    company_name = 'name',
-    founded_on = 'founded_on',
-    closed_on = 'closed_on',
-    acquired_on = 'acquired_on',
-    region = 'hq_region',
-    funding_total_usd = 'total_funding_usd',
-    employee_count = 'employees',
-    status = 'status'
-  )
+
   # ##=================================
   # ## 1. Add Owler companies that were not in CrunchBase
   # ##---------------------------------
@@ -331,47 +336,86 @@ library(stringr, quietly = T)
   ##=================================
   ## 1. Add Owler companies that were not in CrunchBase
   ##---------------------------------
-  ## which owler companies are not in CrunchBase 
-  idx.ow.not.cb <- which( ! ow.vt$company_name_unique %in% co$company_name_unique)
   cat('1. adding new Owler firms to CrunchBase...\n')
   
-  ## set UUID to owler firms
+  ## subset owler companies are not in CrunchBase 
+  idx.cols.ow <- which( ! grepl('competitor_\\d+', names(ow.vt)) & ! names(ow.vt) %in% c('founded_year'))
+  cols.ow <- names(ow.vt)[idx.cols.ow]
+  ow.sub <- ow.vt[ ! ow.vt$company_name_unique %in% co$company_name_unique, cols.ow]
+
+  ## set UUID to new owler firms (not already in CrunchBase)
   cat('adding UUIDs to owler firms...\n')
-  ow.vt[idx.ow.not.cb, 'company_uuid'] <- sapply(seq_len(length(idx.ow.not.cb)),cb$uuid)
+  ow.sub[ , 'company_uuid'] <- sapply(seq_len(nrow(ow.sub)), cb$uuid)
   
-  ##
-  ##
-  ##
-  ##
-  ## STOPPED HERE******************
-  ##
-  ##
-  ##
+  ## ASSIGN company_name_unique if none exists
+  cat('assigning company_name_unique if missing from owler firms...\n')
+  tmp_names_df <- ow.sub[,c('name','company_name_unique')]
+  ow.sub[ , 'company_name_unique'] <- apply(tmp_names_df, 1, cb$assignCompanyNameUnique)
   
-  ## add empty owler columns to crunchbase  
-  cols.skip <- c(owler_cols[grepl('competitor_\\d',owler_cols)],
-                 'founded_date','founded_year','closed_date','acquired_date')
-  cols.ow2cb <- owler_cols[ !(owler_cols %in% names(co)) & !owler_cols %in% cols.skip]
-  for (col in cols.ow2cb) {
-    co[,col] <- NA
-  }
-  ## add empty cruncbhase columns to owler
-  cols.cb2ow <- names(co)[ ! names(co) %in% cols.ow]
-  for (col in cols.cb2ow) {
-    ow.vt[,col] <- NA
-  }
-
-  ## add missing columns
-  co2 <- rbind( co, ow.vt[idx.ow.not.cb, c(cols.ow, cols.cb2ow)] )
-  #****
+  ## cache original CrunchBase organizations dataframe
+  co.orig <- co 
+  
+  ## append (via merge) new firms from Owler into CrunchBase dataframe
+  co <- merge(co, ow.sub, by.x='company_uuid', by.y='company_uuid', all.x=T, all.y=T)
+  
+  ## column mapping FROM Crunbhcase TO Owler
+  cb2ow <- c(
+    company_name = 'name',
+    founded_on = 'founded_date',
+    closed_on = 'closed_date',
+    acquired_on = 'acquired_date',
+    region = 'hq_region',
+    funding_total_usd = 'total_funding_usd',
+    employee_count = 'employees',
+    status = 'status'
+  )
+  
+  ## assign owler dataframe column to crunchbase column for newly added firms (rows)
+  idx.cb.from.ow <- which( co$company_uuid %in% ow.sub$company_uuid)
   for (col in names(cb2ow)) {
-    co2[ ,col] <-   co2[ , cb2ow[col] ]
+    co[idx.cb.from.ow, col ] <-   co[idx.cb.from.ow, cb2ow[col] ]
   }
   
-
+  
+  # ## add empty owler columns to crunchbase  
+  # cols.skip <- c(owler_cols[grepl('competitor_\\d',owler_cols)],
+  #                'founded_date','founded_year','closed_date','acquired_date') ## don't add these
+  # cols.ow2cb <- owler_cols[ !(owler_cols %in% names(co)) & !(owler_cols %in% cols.skip) ]
+  # for (col in cols.ow2cb) {
+  #   co[,col] <- NA
+  # }
+  # ## add empty cruncbhase columns to owler
+  # cols.cb2ow <- names(co)[ ! names(co) %in% cols.ow2cb]
+  # for (col in cols.cb2ow) {
+  #   ow.sub[,col] <- NA
+  # }
+  # 
+  # ## row-bind new owler firms to CrunchBase dataframe including only specified columns from owler
+  # cols.owInCb <- names(co)[ names(co) %in% names(ow.sub) ]
+  # co <- rbind(co, ow.sub[, cols.owInCb])
+  # 
+  # ## column mapping FROM Crunbhcase TO Owler
+  # cb2ow <- c(
+  #   company_name = 'name',
+  #   founded_on = 'founded_on',
+  #   closed_on = 'closed_on',
+  #   acquired_on = 'acquired_on',
+  #   region = 'hq_region',
+  #   funding_total_usd = 'total_funding_usd',
+  #   employee_count = 'employees',
+  #   status = 'status',
+  #   company_uuid = 'owler_company_uuid'
+  # )
+  # 
+  # ## assign owler dataframe column to crunchbase column for newly added firms (rows)
+  # idx.cb.from.ow <- which( co$company_name_unique %in% ow.sub$company_name_unique)
+  # for (col in names(cb2ow)) {
+  #   co[idx.cb.from.ow, col ] <-   co[idx.cb.from.ow, cb2ow[col] ]
+  # }
+  
   
   ##=================================
-  ## 2. Add Owlder companies that were not in CrunchBase
+  ## 2. Add new Owler attribute for companies that were already in CrunchBase
   ##---------------------------------
   idx.ow.in.cb <- which(ow.vt$company_name_unique %in% co$company_name_unique)
   c('2. adding attributes from Owler to CrunchBase firms...\n')
