@@ -288,10 +288,11 @@ library(stringr, quietly = T)
   ##=================================
   ##
   ## Add Owler companies to CrunchBase 
-  ##  - 4 Parts: 1. Owler companies missing from CrunchBase
+  ##  - 5 Parts: 1. Owler companies missing from CrunchBase
   ##             2. Attributes (columns) from Owler for companies already in CrunchBase
   ##             3. IPOs list
   ##             4. Acquisitions list
+  ##             5. Competitor relations
   ##
   ##---------------------------------
 
@@ -465,13 +466,16 @@ library(stringr, quietly = T)
                      & ow.acq$company_name_unique %in% co_acq$acquiree_name_unique))
   for (i in idx.acq) {
     acq_i <- ow.acq[i,]
+    # cat(sprintf('acq %s: %s\n',i, acq_i$company_name_unique))
     n1 <- nrow(co_acq) + 1
     co_acq[n1, ] <- NA
     co_acq$acquiree_name_unique[n1] <- acq_i$company_name_unique  ##acquired firm
     co_acq$acquirer_name_unique[n1] <- acq_i$acquired_by_company_name_unique
     co_acq$acquired_on[n1] <- acq_i$acquired_date
     co_acq$acquiree_uuid[n1] <- co$company_uuid[ co$company_name_unique==co_acq$acquiree_name_unique[n1] ]
-    co_acq$acquirer_uuid[n1] <- co$company_uuid[ co$company_name_unique==co_acq$acquirer_name_unique[n1] ]
+    ## in case acquirer is not in CrunchBase organizations table, create new acquirer UUID
+    acquirer_uuid <- co$company_uuid[ co$company_name_unique==co_acq$acquirer_name_unique[n1] ]
+    co_acq$acquirer_uuid[n1] <- ifelse(length(acquirer_uuid)!=0, acquirer_uuid, cb$uuid())
     co_acq$acquisition_uuid[n1] <- cb$uuid()
   }
   
@@ -484,8 +488,8 @@ library(stringr, quietly = T)
   ## indices of new acquisitions (not currently in CrunchBase acquisitions table)
   idx.ipo <- which( ! ow.ipo$company_name_unique %in% co_ipo$company_name_unique )
   
-  if ( ! 'stock_symbol_2' %in% names(co_ipo))
-    co_ipo$stock_symbol_2 <- NA
+  if ( ! 'stock_exchange_symbol_2' %in% names(co_ipo))
+    co_ipo$stock_exchange_symbol_2 <- NA
   
   for (i in idx.ipo) {
     ipo_i <- ow.ipo[i,]
@@ -499,6 +503,78 @@ library(stringr, quietly = T)
     co_ipo$company_uui[n1] <- co$company_uuid[ co$company_name_unique==co_ipo$company_name_unique[n1] ]
     co_ipo$ipo_uuid[n1] <- cb$uuid()
   }
+  
+  ##==========================
+  ## 5. add competior relations from Owler to CrunchBase competitor list
+  ##--------------------------
+  cat('5. adding competitors from Owler to CrunchBase competitors table...\n')
+  
+  ## indices of owler competitor relations not in CrunchBase competitor list
+  idx.comp <- which( 
+    (
+      ! (
+        ow.el$source %in% co_comp$company_name_unique 
+        & ow.el$target %in% co_comp$competitor_name_unique
+      )
+    ) & (
+      ! (
+        ow.el$target %in% co_comp$company_name_unique 
+        & ow.el$source %in% co_comp$competitor_name_unique
+      )
+    )
+  )
+  
+  if ( ! 'rank' %in% names(co_comp) )
+    co_comp$rank <- NA
+
+  names(ow.el)[ names(ow.el)=='source' ] <- 'company_name_unique'
+  names(ow.el)[ names(ow.el)=='target' ] <- 'competitor_name_unique'
+  
+  ## merge in company dates to compute relation period
+  company_dates <- co[, c('company_name_unique', 'company_uuid', 'founded_on', 'acquired_on', 'closed_on')]
+  names(company_dates) <- c('company_name_unique', 'company_uuid','company_founded_on', 'company_acquired_on', 'company_closed_on')
+  ow.el <- merge(ow.el, company_dates, by.x='company_name_unique', by.y='company_name_unique', all.x=T, all.y = F)
+
+  ## merge in competitor dates to compute relation period
+  competitor_dates <- co[, c('company_name_unique', 'company_uuid', 'founded_on', 'acquired_on', 'closed_on')]
+  names(competitor_dates) <- c('competitor_name_unique', 'competitor_uuid','competitor_founded_on', 'competitor_acquired_on', 'competitor_closed_on')
+  ow.el <- merge(ow.el, competitor_dates, by.x='competitor_name_unique', by.y='competitor_name_unique', all.x=T, all.y = F)
+  
+  ## save updated owler competitor edge list to file to check if debuggin is necessary
+  write.csv(ow.el, file = file.path(tmp_owler_data_dir, 'owler_edge_list_CHECK.csv'), row.names = F, na =  na.strings)
+  
+  cols.comp2ow <- names(co_comp)[ ! names(co_comp) %in% names(ow.el) ]
+  for (col in cols.comp2ow) {
+    ow.el[,col] <- NA
+  }
+  
+  ## row-bind owler competive relations to CrunchBase competitors list
+  co_comp <- rbind(co_comp, ow.el[,names(co_comp)])
+  
+    # for (i in 1:length(idx.comp)) {
+  #   index <- idx.comp[i]
+  #   comp_i <- ow.el[index,]
+  #   n1 <- nrow(co_comp) + 1
+  #   co_comp[n1,] <- NA
+  #   ## company name, UUID, and dates used to compute competitor relation period
+  #   co_comp$company_name_unique[n1] <- comp_i$source
+  #   uuid1 <- co$company_uuid[ co$company_name_unique==co_comp$company_name_unique[n1] ]
+  #   co_comp$company_uuid[n1] <- ifelse(length(uuid1)!=0, uuid1, cb$uuid())
+  #   co_comp$company_founded_on[n1] <- co$founded_on[ co$company_uuid==co_comp$company_uuid[n1] ]
+  #   co_comp$company_closed_on[n1] <- co$closed_on[ co$company_uuid==co_comp$company_uuid[n1] ]
+  #   co_comp$company_acquired_on[n1] <- co$acquired_on[ co$company_uuid==co_comp$company_uuid[n1] ]
+  #   ## company name, UUID, and dates used to compute competitor relation period
+  #   co_comp$competitor_name_unique[n1] <- comp_i$target
+  #   uuid2 <- co$company_uuid[ co$company_name_unique==co_comp$competitor_name_unique[n1] ]
+  #   co_comp$competitor_uuid[n1] <- ifelse(length(uuid2)!=0, uuid2, cb$uuid())
+  #   co_comp$competitor_founded_on[n1] <- co$founded_on[ co$company_uuid==co_comp$competitor_uuid[n1] ]
+  #   co_comp$competitor_closed_on[n1] <- co$closed_on[ co$company_uuid==co_comp$competitor_uuid[n1] ]
+  #   co_comp$competitor_acquired_on[n1] <- co$acquired_on[ co$company_uuid==co_comp$competitor_uuid[n1] ]
+  #   ## rank of competitor (target) for focal firm (source)
+  #   co_comp$rank[n1] <- comp_i$rank
+  #   if (i %% 50 == 0) cat(sprintf('competitors %s: %s-%s\n',index, comp_i$source, comp_i$target))
+  # }
+  
   
   
   ##===============================
