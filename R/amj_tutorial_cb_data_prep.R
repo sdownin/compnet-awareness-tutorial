@@ -279,8 +279,12 @@ library(stringr, quietly = T)
   ## load vertex list 
   ow.vt <- read.csv(file.path(tmp_owler_data_dir, 'owler_vertex_list.csv'), na.strings = na.strings, stringsAsFactors = F)
   
-  ## indicate owler source
+  ## cache original CrunchBase organizations dataframe
+  co.orig <- co 
+  
+  ## indicate source
   ow.vt$source <- 'owler'
+  co$source <- 'crunchbase'
   
   # ## replace  "/" with "-" in dates (YYYY-MM-DD) 
   # date_cols <- c('founded_date','acquired_date','closed_date')
@@ -343,7 +347,7 @@ library(stringr, quietly = T)
   cols.ow <- names(ow.vt)[idx.cols.ow]
   ow.sub <- ow.vt[ ! ow.vt$company_name_unique %in% co$company_name_unique, cols.ow]
 
-  ## set UUID to new owler firms (not already in CrunchBase)
+  ## set UUID for new owler firms (not already in CrunchBase)
   cat('adding UUIDs to owler firms...\n')
   ow.sub[ , 'company_uuid'] <- sapply(seq_len(nrow(ow.sub)), cb$uuid)
   
@@ -352,28 +356,36 @@ library(stringr, quietly = T)
   tmp_names_df <- ow.sub[,c('name','company_name_unique')]
   ow.sub[ , 'company_name_unique'] <- apply(tmp_names_df, 1, cb$assignCompanyNameUnique)
   
-  ## cache original CrunchBase organizations dataframe
-  co.orig <- co 
+  ## append "owler_" prefix to owler data column names
+  ## to avoid name conflicts during merge and to be identified & removed after merge
+  names(ow.sub) <- unname(sapply(names(ow.sub),function(x)sprintf('owler_%s',x)))
   
   ## append (via merge) new firms from Owler into CrunchBase dataframe
-  co <- merge(co, ow.sub, by.x='company_uuid', by.y='company_uuid', all.x=T, all.y=T)
+  co <- merge(co, ow.sub, by.x='company_uuid', by.y='owler_company_uuid', all.x=T, all.y=T)
   
   ## column mapping FROM Crunbhcase TO Owler
   cb2ow <- c(
-    company_name = 'name',
-    founded_on = 'founded_date',
-    closed_on = 'closed_date',
-    acquired_on = 'acquired_date',
-    region = 'hq_region',
-    funding_total_usd = 'total_funding_usd',
-    employee_count = 'employees',
-    status = 'status'
+    company_name = 'owler_name',
+    founded_on = 'owler_founded_date',
+    closed_on = 'owler_closed_date',
+    acquired_on = 'owler_acquired_date',
+    region = 'owler_hq_region',
+    funding_total_usd = 'owler_total_funding_usd',
+    employee_count = 'owler_employees',
+    status = 'owler_status',
+    source = 'owler_source'
   )
   
   ## assign owler dataframe column to crunchbase column for newly added firms (rows)
-  idx.cb.from.ow <- which( co$company_uuid %in% ow.sub$company_uuid)
+  idx.cb.from.ow <- which( co$company_uuid %in% ow.sub$owler_company_uuid)
   for (col in names(cb2ow)) {
     co[idx.cb.from.ow, col ] <-   co[idx.cb.from.ow, cb2ow[col] ]
+  }
+  
+  ## remove owler columns from CrunchBase dataframe (after having added owler firms)
+  cols.remove <- names(co)[grepl('^owler_.+', names(co))]
+  for (col in cols.remove) {
+    co[, col] <- NULL
   }
   
   
