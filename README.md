@@ -2347,17 +2347,17 @@ Finally, compute a new TERGM with the updated data from Owler and CrunchBase usi
 mmc <- lapply(nets, function(net) net %n% 'mmc')
 sim <- lapply(nets, function(net) net %n% 'similarity')
 
+## Set model based upon hypotheses and controls
 m2 <-   nets ~ edges + gwesp(0, fixed = T) + gwdegree(0, fixed=T) + 
   memory(type = "stability", lag = 1) + 
   timecov(transform = function(t)t) + 
   nodematch("ipo_status", diff = F) + 
   nodecov("age") + absdiff("age") + 
-  nodecov("cent_deg") +
   nodecov("genidx_multilevel") + 
-  nodecov("constraint") + 
   nodecov("cent_pow_n0_4") + absdiff("cent_pow_n0_4") + 
-  edgecov(sim) +  edgecov(mmc) + 
-  cycle(3) + cycle(4)  
+  # edgecov(sim) +  
+  #edgecov(mmc) + 
+  cycle(3) #+ cycle(4)  
 ## need to add state_code or match regions between Owler & CrunchBase to include in model
 ## nodematch("state_code", diff = F)
 
@@ -2389,10 +2389,6 @@ fit2 <- btergm(m2, R=R, parallel = "multicore", ncpus = detectCores())
 ## memory (col)   116 116 116 116 116 116 116 116  116  116
 ## timecov1 (row) 116 116 116 116 116 116 116 116  116  116
 ## timecov1 (col) 116 116 116 116 116 116 116 116  116  116
-## sim (row)      116 116 116 116 116 116 116 116  116  116
-## sim (col)      116 116 116 116 116 116 116 116  116  116
-## mmc (row)      116 116 116 116 116 116 116 116  116  116
-## mmc (col)      116 116 116 116 116 116 116 116  116  116
 ## 
 ## All networks are conformable.
 ## 
@@ -2404,10 +2400,6 @@ fit2 <- btergm(m2, R=R, parallel = "multicore", ncpus = detectCores())
 ## memory (col)   116 116 116 116 116 116 116 116  116  116
 ## timecov1 (row) 116 116 116 116 116 116 116 116  116  116
 ## timecov1 (col) 116 116 116 116 116 116 116 116  116  116
-## sim (row)      116 116 116 116 116 116 116 116  116  116
-## sim (col)      116 116 116 116 116 116 116 116  116  116
-## mmc (row)      116 116 116 116 116 116 116 116  116  116
-## mmc (col)      116 116 116 116 116 116 116 116  116  116
 ## 
 ## Starting pseudolikelihood estimation with 100 bootstrapping replications using multicore forking on 4 cores...
 ## Done.
@@ -2419,47 +2411,40 @@ print(screenreg(fit2, digits = 3))
 
 ```
 ## 
-## =========================================================================
-##                            Model 1                                       
-## -------------------------------------------------------------------------
-## edges                                       2.585                        
-##                            [-4534873292706167.000;  4322672539502735.000]
-## gwesp.fixed.0                              -0.457                        
-##                            [ -859530506970358.625;   542409351365140.500]
-## gwdegree                                   -1.677                        
-##                            [ -922829348646105.250;  3065857516197601.000]
-## edgecov.memory[[i]]                         6.909 *                      
-##                            [                5.545;  3487131316037349.500]
-## edgecov.timecov1[[i]]                      -0.409                        
-##                            [ -211450052879646.406;    52037191730159.672]
-## nodematch.ipo_status                        0.610                        
-##                            [ -983563562550868.250;                 0.800]
-## nodecov.age                                -0.005                        
-##                            [   -6505382537519.518;     4483239127262.594]
-## absdiff.age                                 0.000                        
-##                            [   -5844510336660.162;     8988484101002.184]
-## nodecov.cent_deg                            0.117                        
-##                            [  -17925310713664.598;   216797365386821.906]
-## nodecov.genidx_multilevel                  -0.494                        
-##                            [ -294552914451127.938;   936448435020619.250]
-## nodecov.constraint                          0.235                        
-##                            [ -718900690149747.875;  2189364284109573.500]
-## nodecov.cent_pow_n0_4                      -0.018                        
-##                            [ -112648311687055.453;   117032598638855.062]
-## absdiff.cent_pow_n0_4                       0.386                        
-##                            [ -261349075465800.625;   321352473211924.875]
-## edgecov.sim[[i]]                            3.575                        
-##                            [-1706429027307131.750;  1694425134439084.750]
-## edgecov.mmc[[i]]                           31.355                        
-##                            [-1770798207800598.750; 12015211760384590.000]
-## cycle3                                     -0.334                        
-##                            [ -460102559098644.625;  2280983502832442.000]
-## cycle4                                     -0.011                        
-##                            [ -364112300756874.188;   264291561489323.281]
-## -------------------------------------------------------------------------
-## Num. obs.                               36318                            
-## =========================================================================
+## ============================================
+##                            Model 1          
+## --------------------------------------------
+## edges                          2.819        
+##                            [ -4.481; 27.975]
+## gwesp.fixed.0                  0.003        
+##                            [-15.669;  0.191]
+## gwdegree                      -1.696        
+##                            [ -3.375;  4.314]
+## edgecov.memory[[i]]            6.855 *      
+##                            [  5.858; 43.118]
+## edgecov.timecov1[[i]]         -0.320        
+##                            [ -0.511;  1.125]
+## nodematch.ipo_status           0.117        
+##                            [ -1.050;  0.920]
+## nodecov.age                   -0.008 *      
+##                            [ -0.233; -0.001]
+## absdiff.age                    0.003        
+##                            [ -0.003;  0.236]
+## nodecov.genidx_multilevel      0.587 *      
+##                            [  0.310;  4.792]
+## nodecov.cent_pow_n0_4         -0.022        
+##                            [ -0.058;  0.677]
+## absdiff.cent_pow_n0_4          0.355 *      
+##                            [  0.231;  1.299]
+## cycle3                         0.982        
+##                            [ -0.050; 13.240]
+## --------------------------------------------
+## Num. obs.                  35642            
+## ============================================
 ## * 0 outside the confidence interval
+```
+
+```r
 ```
 
 ```r

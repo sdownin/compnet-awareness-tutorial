@@ -256,12 +256,9 @@ m2 <-   nets ~ edges + gwesp(0, fixed = T) + gwdegree(0, fixed=T) +
   timecov(transform = function(t)t) + 
   nodematch("ipo_status", diff = F) + 
   nodecov("age") + absdiff("age") + 
-  nodecov("cent_deg") +
   nodecov("genidx_multilevel") + 
-  nodecov("constraint") + 
   nodecov("cent_pow_n0_4") + absdiff("cent_pow_n0_4") + 
-  edgecov(sim) +  
-  #edgecov(mmc) + 
+  # edgecov(sim) + edgecov(mmc) + 
   cycle(3) #+ cycle(4)  
 ## need to add state_code or match regions between Owler & CrunchBase to include in model
 ## nodematch("state_code", diff = F)
