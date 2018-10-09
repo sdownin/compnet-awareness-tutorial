@@ -2398,9 +2398,6 @@ print(screenreg(fit2, digits = 3))
 ```
 
 ```r
-```
-
-```r
 ## SAVE SERIALIZED DATA
 fit2_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', focal_firm, nPeriods, R, 'm2'))
 saveRDS(fit2, file=fit2_file)
