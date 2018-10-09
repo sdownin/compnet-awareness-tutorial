@@ -1715,53 +1715,6 @@ This will take several minutes to complete.
 source(file.path(work_dir,'R','amj_awareness_functions.R'))    ## aaf: compnet awareness functions
 ```
 
-```
-## 
-## Attaching package: 'igraph'
-## The following objects are masked from 'package:lubridate':
-## 
-##     %--%, union
-## The following objects are masked from 'package:network':
-## 
-##     %c%, %s%, add.edges, add.vertices, delete.edges,
-##     delete.vertices, get.edge.attribute, get.edges,
-##     get.vertex.attribute, is.bipartite, is.directed,
-##     list.edge.attributes, list.vertex.attributes,
-##     set.edge.attribute, set.vertex.attribute
-## The following objects are masked from 'package:stats':
-## 
-##     decompose, spectrum
-## The following object is masked from 'package:base':
-## 
-##     union
-## Warning: package 'intergraph' was built under R version 3.4.3
-## Loading required package: tnam
-## Package:  tnam
-## Version:  1.6.5
-## Date:     2017-03-31
-## Authors:  Philip Leifeld (University of Glasgow)
-##           Skyler J. Cranmer (The Ohio State University)
-## Loading required package: rem
-## Loading required package: GERGM
-## GERGM: Generalized Exponential Random Graph Models
-## Version 0.11.2 created on 2017-03-14.
-## copyright (c) 2017, Matthew J. Denny, Penn State University
-##                     James D. Wilson, University of San Francisco
-##                     Skyler Cranmer, Ohio State University
-##                     Bruce A. Desmarais, Penn State University
-##                     Shankar Bhamidi, University of North Carolina
-## Type help('gergm') to get started.
-## Development website: https://github.com/matthewjdenny/GERGM
-## Package:  xergm
-## Version:  1.8.2
-## Date:     2017-04-01
-## Authors:  Philip Leifeld (University of Glasgow)
-##           Skyler J. Cranmer (The Ohio State University)
-##           Bruce A. Desmarais (Pennsylvania State University)
-## 
-## Please cite the xergm package in your publications -- see citation("xergm").
-```
-
 ```r
 source(file.path(work_dir,'R','amj_tutorial_cb_data_prep.R'))  ## cb:  CrunchBase dataframes object
 ```
