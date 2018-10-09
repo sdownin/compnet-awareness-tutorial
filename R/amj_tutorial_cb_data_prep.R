@@ -334,7 +334,7 @@ library(stringr, quietly = T)
   ow.sub <- ow.vt[ ! ow.vt$company_name_unique %in% co$company_name_unique, cols.ow]
 
   ## set UUID for new owler firms (not already in CrunchBase)
-  cat('    adding UUIDs to owler firms...\n')
+  cat('   adding UUIDs to owler firms...\n')
   ow.sub[ , 'company_uuid'] <- sapply(seq_len(nrow(ow.sub)), cb$uuid)
   
   ## append "owler_" prefix to owler data column names

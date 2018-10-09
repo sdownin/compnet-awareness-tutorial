@@ -186,7 +186,51 @@ write.csv(sapply(nets,function(x)length(x$val)), file = file.path(data_dir,sprin
 
 #-------------------------------------------------
 
-## CAREFUL TO OVERWRITE 
+## Save serialized data file of all networks and covariates lists 
 file.rds <- file.path(data_dir,sprintf('%s_d%d.rds',name_i,d))
 saveRDS(nets, file = file.rds)
+
+
+##================================
+## Compute A Model with New Data
+##--------------------------------
+
+## cache edge covariates list
+mmc <- lapply(nets, function(net) net %n% 'mmc')
+sim <- lapply(nets, function(net) net %n% 'similarity')
+
+m2 <-   nets ~ edges + gwesp(0, fixed = T) + gwdegree(0, fixed=T) + 
+  memory(type = "stability", lag = 1) + 
+  timecov(transform = function(t)t) + 
+  nodematch("ipo_status", diff = F) + 
+  #nodematch("state_code", diff = F) + 
+  nodecov("age") + absdiff("age") + 
+  nodecov("cent_deg") +
+  nodecov("genidx_multilevel") + 
+  nodecov("constraint") + 
+  nodecov("cent_pow_n0_4") + absdiff("cent_pow_n0_4") + 
+  edgecov(sim) +  edgecov(mmc) + 
+  cycle(3) + cycle(4)  
+
+
+## number of bootstrap replicates
+R <- 100
+
+## set pseudorandom number generator seed for reproducibility
+set.seed(1111)
+
+## estimate the TERGM with bootstrapped PMLE
+fit2 <- btergm(m2, R=R, parallel = "multicore", ncpus = detectCores())
+
+## SAVE SERIALIZED DATA
+fit2_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', firm_i, nPeriods, R, 'm0'))
+saveRDS(fit2, file=fit2_file)
+
+
+
+
+
+
+
+
 
