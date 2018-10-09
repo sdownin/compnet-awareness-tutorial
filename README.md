@@ -1932,16 +1932,7 @@ force.overwrite <- FALSE ## if network files in directory should be overwritten
 # for (i in 1:length(firms.todo)) {
 
 name_i <- focal_firm
-cat(sprintf('\n\n------------ %s -------------\n\n',name_i))
-```
 
-```
-## 
-## 
-## ------------ ford -------------
-```
-
-```r
 periods <- seq(startYr,endYr,yrpd)
 company.name <- 'company_name_unique'
 g.base <- g.full  
