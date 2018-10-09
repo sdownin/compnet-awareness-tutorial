@@ -12,7 +12,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Part 4: Computing Period Networks and Covariate Lists
 
-```{r libraries}
+In this repository's `R` directory, download the R script `amj_run_TERGM_tutorial_4.R`. 
+
+Save the CrunchBase data export in your system and set the `cb_data_dir` parameter to point to the root of the CrunchBase data directory.   
+
+
+```{r set_data_dirs}
 ##===============================
 ## If the required libraries are not installed on your computer, run:
 ## >  install.packages(c('btergm','parallel','texreg'))
@@ -23,12 +28,7 @@ library(texreg)
 library(reshape2)
 library(plyr)
 library(lubridate)
-```
 
-
-
-
-```{r set_data_dirs}
 ##===============================
 ## SET YOUR DIRECTORIES:
 ##   This is the path to the folder where you saved the data file.
@@ -264,7 +264,6 @@ m2 <-   nets ~ edges + gwesp(0, fixed = T) + gwdegree(0, fixed=T) +
   cycle(3) + cycle(4)  
 ## need to add state_code or match regions between Owler & CrunchBase to include in model
 ## nodematch("state_code", diff = F)
-
 
 
 ## number of bootstrap replicates

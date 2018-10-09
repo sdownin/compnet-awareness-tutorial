@@ -1522,12 +1522,27 @@ This script will create (or overwrite) 2 new files in your `data_dir`
 ## missing value strings to convert to <NA> type in imported data file
 na.strings <- c('NA', 'na', '')
 
+##
+#  Assign company_name_unique if missing
+#     from two input columns (company_name, company_name_unique)
+#  @param [string[]|NA[]] x  Vector of two strings|NAs (company_name, company_name_unique)
+#  @return [string company_name_unique
+##
+assignCompanyNameUnique <- function(x=NA)
+{
+  # cat(sprintf('1: %s, 2: %s\n', x[1], x[2]))
+  if (all(is.na(x)))
+    return(NA)
+  name <- ifelse(!is.na(x[2]), x[2], x[1]) ## use company_name_unique if exists, else company_name
+  name <- str_to_lower(name)  ## to lowercase 
+  ## replace non-alphanumeric sequences with a dash "-" and then return
+  return(str_replace_all(name, pattern = '[^A-Za-z0-9]+', replacement = '-'))
+}
+
 ##====================================
 ## Add New Data from Owler Data Files
 ##------------------------------------
 
-## new data directory name
-owler_data_dir <- 'owler_data'
 
 ## new data directory
 owler_dir <- file.path(data_dir,owler_data_dir)
@@ -1544,17 +1559,21 @@ for (file in dir(owler_dir, pattern = '\\.csv$')) {
   full_file_path <- file.path(owler_dir, file)
   df <- read.csv(full_file_path, stringsAsFactors = F, na.strings = na.strings)
   
-  ## append verices
-  vt <- rbind(vt, df)
+  ## keep columns that are NOT missing all competiors 
+  rows.keep <- apply(df[names(df)[grep('competitor_\\d{1,}',x = names(df))]], 1, function(x) !all(is.na(x)))
+  df <- df[rows.keep,]
   
-  ## select competitor column names of the form: "competitor_<number>"
-  cols <- names(df)
-  compcols <- cols[grep('competitor_\\d{1,}',x = cols)]  ## \\d{1,} is integer of 1+ digits 
+  ## assign company_name_unique if not exists
+  tmp_names_df <- df[, c('name', 'company_name_unique')]
+  df$company_name_unique <- apply(tmp_names_df, 1, assignCompanyNameUnique)
   
   ## if no competitor data columns or missing company_name_unique column, 
   ## then skip to next data file
   if (length(compcols)==0 | !('company_name_unique' %in% names(df)))
     next
+  
+  ## append verices
+  vt <- rbind(vt, df)
   
   ## loop over firms in data file
   for (i in 1:nrow(df)) {
@@ -1565,9 +1584,6 @@ for (file in dir(owler_dir, pattern = '\\.csv$')) {
     ## select competitors of firm i 
     firm_i_comps <- unlist(df[i, compcols]) ## unlist from data.frame to vector
     
-    ## skip if firm i has no company_name_unique
-    if (is.na(firm_i))
-      next
     ## skip rows with no competitors included
     if (all(sapply(firm_i_comps, is.na)))
       next
@@ -1575,13 +1591,23 @@ for (file in dir(owler_dir, pattern = '\\.csv$')) {
     ## loop over each  competitor j of firm i
     for (j in 1:length(firm_i_comps)) {
       
-      comp_j <- unname(firm_i_comps[j])
+      ## competitor j's name
+      comp_j_name <- unname(firm_i_comps[j])
+      ## competitor j's company_name_unique
+      comp_j <- vt$company_name_unique[vt$name==comp_j_name]
       
-      if (!is.na(comp_j)) {
-        tmp_el <- data.frame(source=firm_i, target=comp_j, rank=j, weight=1)
-        ## append competitor relation
-        el <- rbind(el, tmp_el)          
-      }
+      ## skip is missing
+      if (length(comp_j)==0) 
+        next
+      if(all(is.na(comp_j_name)) | all(is.na(comp_j))) 
+        next
+      
+      # ## echo progress check 
+      # cat(sprintf('%s firm %s, competitor %s\n', i, firm_i, comp_j))  ## echo progress
+      
+      ## append competitor relation      
+      tmp_el <- data.frame(source=firm_i, target=comp_j, rank=j, weight=1)
+      el <- rbind(el, tmp_el)          
       
     }
     
@@ -1590,6 +1616,15 @@ for (file in dir(owler_dir, pattern = '\\.csv$')) {
   }
   
 }
+
+
+## check vertices
+dim(vt)
+head(vt)
+
+## check edge list
+dim(el)
+head(el, 20)
 
 ## 
 ## 
@@ -1609,138 +1644,840 @@ for (file in dir(owler_dir, pattern = '\\.csv$')) {
 ## firm 350 salem-media-group
 ```
 
-The `target` column is not of the format like `company_name_unique` which must be fixed or else the firm names cannot be matched against the vertex dataframe to create the graph data frame.
-
-
-```r
-## check vertices
-dim(vt)
-
-## [1] 724  28
-
-head(vt)
-
-##            name company_name_unique founded_year founded_date closed_date
-## 1          Ford                ford         1963    1963/6/16        <NA>
-## 2        Toyota       toyota-global         1903    1903/6/17        <NA>
-## 3         Honda               honda         1948    1948/9/24        <NA>
-## 4     Chevrolet           chevrolet         1911    1911/11/1        <NA>
-## 5        Nissan       nissan-global         1933   1933/12/26        <NA>
-## 6 Hyundai Motor             hyundai         1967   1967/12/29        <NA>
-##   acquired_date acquired_by_company_name_unique employees
-## 1          <NA>                            <NA>   202,000
-## 2          <NA>                            <NA>   369,124
-## 3          <NA>                            <NA>   215,638
-## 4          <NA>                            <NA>    20,000
-## 5          <NA>                            <NA>   152,421
-## 6          <NA>                            <NA>    63,099
-##              domain total_funding_usd annual_revenue
-## 1          ford.com             $756M        $158.7B
-## 2 toyota-global.com               $ -        $470.2B
-## 3         honda.com               $ -        $138.9B
-## 4     chevrolet.com               $ -         $11.5B
-## 5 nissan-global.com               $ -        $106.1B
-## 6       hyundai.com               $ -         $73.1B
-##                         hq_region  status   ipo_date independence
-## 1                DearbornMichigan  Public 1956-01-01            Y
-## 2     Toyota CityAichi Prefecture  Public 1978-01-13            Y
-## 3     Minato-kuTōkyō Prefecture  Public 1978-01-13            Y
-## 4                  Oshawa,Ontario Private       <NA>            Y
-## 5 Yokohama-shiKanagawa Prefecture Private       <NA>            Y
-## 6          SeoulSeoul Teugbyeolsi  Public 2003-01-10            Y
-##   stock_symbol_1 stock_symbol_2  competitor_1  competitor_2 competitor_3
-## 1           NYSE           <NA>        Toyota         Honda    Chevrolet
-## 2           NYSE           <NA>        Nissan         Honda   Ford Motor
-## 3            BMV           <NA>        Toyota        Nissan   Ford Motor
-## 4           <NA>           <NA> Hyundai Motor    Ford Motor          Kia
-## 5           <NA>           <NA> Hyundai Motor         Acura        Honda
-## 6 Korea Exchange           <NA>        Nissan Mercedes-Benz  Mazda Motor
-##   competitor_4       competitor_5   competitor_6 competitor_7
-## 1       Nissan      Hyundai Motor     Volkswagen   Volkswagen
-## 2   Volkswagen     General Motors  Hyundai Motor    BMW Group
-## 3   Volkswagen      Hyundai Motor General Motors     Chrysler
-## 4       Nissan             Toyota          Honda   Volkswagen
-## 5      Peugeot Toyota Motor Sales     Volkswagen   SAIC Motor
-## 6        Honda         Volkswagen           Audi       Toyota
-##     competitor_8 competitor_9 competitor_10 notes
-## 1 General Motors           NA            NA  <NA>
-## 2    Tata Motors           NA            NA  <NA>
-## 3           <NA>           NA            NA  <NA>
-## 4       Chrysler           NA            NA  <NA>
-## 5         Toyota           NA            NA  <NA>
-## 6 General Motors           NA            NA  <NA>
-
-## check edge list
-dim(el)
-
-## [1] 4122    4
-
-head(el, 20)
-
-##           source         target rank weight
-## 1           ford         Toyota    1      1
-## 2           ford          Honda    2      1
-## 3           ford      Chevrolet    3      1
-## 4           ford         Nissan    4      1
-## 5           ford  Hyundai Motor    5      1
-## 6           ford     Volkswagen    6      1
-## 7           ford     Volkswagen    7      1
-## 8           ford General Motors    8      1
-## 9  toyota-global         Nissan    1      1
-## 10 toyota-global          Honda    2      1
-## 11 toyota-global     Ford Motor    3      1
-## 12 toyota-global     Volkswagen    4      1
-## 13 toyota-global General Motors    5      1
-## 14 toyota-global  Hyundai Motor    6      1
-## 15 toyota-global      BMW Group    7      1
-## 16 toyota-global    Tata Motors    8      1
-## 17         honda         Toyota    1      1
-## 18         honda         Nissan    2      1
-## 19         honda     Ford Motor    3      1
-## 20         honda     Volkswagen    4      1
-```
-
-We need to update `target` column by using the mapping `name`-->`company_name_unique` that we already have in the vertex dataframe.
+Save the vertex list and edge list to CSV files.
 
 ```r
-# company name to company_name_unique mapping
-mapping <- vt[,c('name','company_name_unique')]
-names(mapping) <- c('target','target_name_unique')
-
-## merge the original edge list and company_name_unique mapping
-el2 <- merge(el, mapping, by.x='target', by.y='target', all.x=T, all.y=F)
-
-## replace original target column with new mapped target_name_unique
-el2$target <- el2$target_name_unique
-## finally remove the temporary target_name_unique column
-el2$target_name_unique <- NULL
-
-head(el2)
-
-##          target        source rank weight
-## 1 toyota-global      bmwgroup    2      1
-## 2 toyota-global nissan-global    8      1
-## 3 toyota-global       hyundai    7      1
-## 4 toyota-global mercedes-benz    6      1
-## 5 toyota-global  volkswagenag    1      1
-## 6 toyota-global    tatamotors    4      1
-
 ## write edge list to csv file
 el_file <- file.path(data_dir, 'owler_edge_list.csv')
 write.csv(el, file = el_file, row.names = F)
 
 ## write vertex list to csv file
-el_file <- file.path(data_dir, 'owler_vertex_list.csv')
-write.csv(vt, file = el_file, row.names = F)
+vt_file <- file.path(data_dir, 'owler_vertex_list.csv')
+write.csv(vt, file = vt_file, row.names = F)
 ```
 
-
-In progress...
+This completes Part 3.
 
 
 # Part 4: Computing Period Networks and Covariate Lists
 
 > [Back to Contents](#contents  "Back")
 
-Coming soon...
+
+```r
+##===============================
+## SET YOUR DIRECTORIES:
+##   This is the path to the folder where you saved the data file.
+##   If you are using a Windows PC, use double backslash path separators "..\\dir\\subdir\\.."
+##-------------------------------
+## working dir
+work_dir <- '/set/working/dir'
+
+## new data directory name
+cb_data_dir <- '/set/data/dir'
+
+## owler data directory name
+owler_data_dir_name <- 'owler_data'
+
+## SET FOCAL FIRM
+focal_firm <- 'ford' ## your focal firm
+```
+
+
+
+
+
+Set relative paths for data
+
+
+```r
+##================================
+## Relative paths based on above directories
+##--------------------------------
+## data_dir <- '/set/your/data/directory/here'
+data_dir <- file.path(work_dir, 'data')
+
+## new data directory name
+owler_data_dir <- file.path(data_dir, owler_data_dir_name)
+```
+
+Load `R` scripts:
+- `amj_awareness_functions.R` loads functions for data processing; cached in environment as [list] `aaf`
+- `amj_tutorial_cb_data_prep.R` loads data tables; cached in environment as [list] `cb`
+
+This will take several minutes to complete.
+
+
+```r
+##==================================================
+## Run data loading and prep scripts
+##--------------------------------------------------
+source(file.path(work_dir,'R','amj_awareness_functions.R'))    ## aaf: compnet awareness functions
+```
+
+```
+## 
+## Attaching package: 'igraph'
+## The following objects are masked from 'package:lubridate':
+## 
+##     %--%, union
+## The following objects are masked from 'package:network':
+## 
+##     %c%, %s%, add.edges, add.vertices, delete.edges,
+##     delete.vertices, get.edge.attribute, get.edges,
+##     get.vertex.attribute, is.bipartite, is.directed,
+##     list.edge.attributes, list.vertex.attributes,
+##     set.edge.attribute, set.vertex.attribute
+## The following objects are masked from 'package:stats':
+## 
+##     decompose, spectrum
+## The following object is masked from 'package:base':
+## 
+##     union
+## Warning: package 'intergraph' was built under R version 3.4.3
+## Loading required package: tnam
+## Package:  tnam
+## Version:  1.6.5
+## Date:     2017-03-31
+## Authors:  Philip Leifeld (University of Glasgow)
+##           Skyler J. Cranmer (The Ohio State University)
+## Loading required package: rem
+## Loading required package: GERGM
+## GERGM: Generalized Exponential Random Graph Models
+## Version 0.11.2 created on 2017-03-14.
+## copyright (c) 2017, Matthew J. Denny, Penn State University
+##                     James D. Wilson, University of San Francisco
+##                     Skyler Cranmer, Ohio State University
+##                     Bruce A. Desmarais, Penn State University
+##                     Shankar Bhamidi, University of North Carolina
+## Type help('gergm') to get started.
+## Development website: https://github.com/matthewjdenny/GERGM
+## Package:  xergm
+## Version:  1.8.2
+## Date:     2017-04-01
+## Authors:  Philip Leifeld (University of Glasgow)
+##           Skyler J. Cranmer (The Ohio State University)
+##           Bruce A. Desmarais (Pennsylvania State University)
+## 
+## Please cite the xergm package in your publications -- see citation("xergm").
+```
+
+```r
+source(file.path(work_dir,'R','amj_tutorial_cb_data_prep.R'))  ## cb:  CrunchBase dataframes object
+```
+
+```
+## 
+## Attaching package: 'magrittr'
+## The following object is masked from 'package:texreg':
+## 
+##     extract
+## 
+## loading dataframes...done.
+## adding Owler data
+## 1. adding new Owler firms to CrunchBase
+##    adding UUIDs to owler firms...
+## 2. adding attributes from Owler to CrunchBase firms
+## 3. adding acquisitions from Owler to CrunchBase acquisitions table
+## 4. adding IPOs from Owler to CrunchBase IPOs table
+## 5. adding competitors from Owler to CrunchBase competitors table
+## preparing CrunchBase data
+## Warning: All formats failed to parse. No formats found.
+## Warning: All formats failed to parse. No formats found.
+## Warning: All formats failed to parse. No formats found.
+## reshaping acquisitions dataframe...done.
+## clearing environment...
+```
+
+```r
+print(summary(aaf))
+```
+
+```
+##                       Length Class  Mode    
+## makeGraph             1      -none- function
+## generalistIndex       1      -none- function
+## jobsToBeDone          1      -none- function
+## mmcMarketsDf          1      -none- function
+## mmcfromMarketConcat   1      -none- function
+## coopConcatDf          1      -none- function
+## coopFromConcat        1      -none- function
+## .cov.coop             1      -none- function
+## .cov.coopPast         1      -none- function
+## .cov.age              1      -none- function
+## .cov.mmc              1      -none- function
+## .cov.dist             1      -none- function
+## .cov.ipo              1      -none- function
+## .cov.constraint       1      -none- function
+## .cov.similarity       1      -none- function
+## .cov.centrality       1      -none- function
+## .cov.generalistIndex  1      -none- function
+## setCovariates         1      -none- function
+## nodeCollapseGraph     1      -none- function
+## makePdNetwork         1      -none- function
+## makePdGraph           1      -none- function
+## getNetEcount          1      -none- function
+## plotCompNetColPredict 1      -none- function
+```
+
+```r
+print(summary(cb))
+```
+
+```
+##                 Length Class      Mode    
+## uuid             1     -none-     function
+## match            1     -none-     function
+## parseNonNa       1     -none-     function
+## falsy            1     -none-     function
+## relationBeganOn  1     -none-     function
+## relationEndedOn  1     -none-     function
+## readCsv          1     -none-     function
+## fixDateYMD       1     -none-     function
+## csv             13     -none-     list    
+## co              33     data.frame list    
+## co_comp         15     data.frame list    
+## co_cust          7     data.frame list    
+## co_parent        7     data.frame list    
+## co_prod         12     data.frame list    
+## co_acq          23     data.frame list    
+## co_br           19     data.frame list    
+## co_rou          21     data.frame list    
+## co_ipo          20     data.frame list    
+## fund             9     data.frame list    
+## inv             14     data.frame list    
+## inv_rou          3     data.frame list    
+## inv_part         3     data.frame list
+```
+
+Create the full competition network (graph) for all competitive relations at all times. The following step after this will then create competition network panels with one competition network per time period by removing the relations and firms that didn't exist during that period.
+
+
+```r
+##==================================================
+##
+##  Make Full Graph
+##
+##--------------------------------------------------
+
+cat('\nmaking full graph...')
+```
+
+```
+## 
+## making full graph...
+```
+
+```r
+max.year <- 2016
+
+## delete edges at or later than this date (the year after max.year)
+exclude.date <- sprintf('%d-01-01', max.year+1)
+
+## make graph
+g.full <- aaf$makeGraph(comp = cb$co_comp, vertdf = cb$co)
+
+## cut out confirmed dates >= 2016
+g.full <- igraph::induced.subgraph(g.full, vids=V(g.full)[which(V(g.full)$founded_year <= max.year
+                                                                | is.na(V(g.full)$founded_year)
+                                                                | V(g.full)$founded_year=='' ) ] )
+g.full <- igraph::delete.edges(g.full, E(g.full)[which(E(g.full)$relation_created_at >= exclude.date)])
+
+## SIMPLIFY
+g.full <- igraph::simplify(g.full, remove.loops=T,remove.multiple=T,
+                           edge.attr.comb = list(weight='sum',
+                                                 relation_began_on='max',
+                                                 relation_ended_on='min'))
+
+## save graph file
+igraph::write.graph(graph = g.full, file=file.path(data_dir, "g_full.graphml"), format = 'graphml')
+
+cat('done.\n')
+```
+
+```
+## done.
+```
+
+The main data preparation step involves using the full competition network and running a 3-step procedure to compute temporal panel data of competition networks and covariate arrays for each period.
+
+The steps apply functions loaded in the `aaf` object for each period in the analysis time frame:
+1. `aaf$nodeCollapseGraph(...)` Process acquisitions by transferring competitive relations from acquisition target to acquiring firm for each period
+2. `aaf$makePdNetwork(...)` Filter the competitive relations and firms that existed within each period
+3. `aaf$setCovariates(...)`  Compute node and edge covariates from the updated period competition network and set the covariates in this period's `network` object
+
+
+```r
+##==================================================
+##
+##  Create Focal Firm Networks per time period
+##     and compute covariate arrays lists 
+##     from network in each period 
+##
+##--------------------------------------------------
+
+## -- settings --
+d <- 3                   ## distance threshold for cohort selection
+yrpd <- 1                ## length of period in years
+startYr <- 2005          ## starting year (including 1 previous year for lag)
+endYr <- 2017            ## dropping first for memory term; actual dates 2007-2016
+lg.cutoff <- 1100        ## large network size cutoff to save periods seprately 
+force.overwrite <- FALSE ## if network files in directory should be overwritten
+## --------------  
+
+
+##====================================
+## run main network period creation loop
+##-------------------------------------
+# for (i in 1:length(firms.todo)) {
+
+name_i <- focal_firm
+cat(sprintf('\n\n------------ %s -------------\n\n',name_i))
+```
+
+```
+## 
+## 
+## ------------ ford -------------
+```
+
+```r
+periods <- seq(startYr,endYr,yrpd)
+company.name <- 'company_name_unique'
+g.base <- g.full  
+
+## focal firm ego network sample
+g.d.sub <- igraph::make_ego_graph(graph = g.base, nodes = V(g.base)[V(g.base)$name==name_i], order = d, mode = 'all')[[1]]
+
+## convert to network object
+net.d.sub <- asNetwork(g.d.sub)
+net <- net.d.sub
+net %n% 'ego' <- name_i
+
+##-------process pre-start-year acquisitions----------
+acqs.pd <- cb$co_acq[cb$co_acq$acquired_on <= sprintf('%d-12-31',startYr-1), ]
+g.d.sub <- aaf$nodeCollapseGraph(g.d.sub, acqs.pd, remove.isolates=T, verbose = T)
+```
+
+```
+## processing acquisitions: 0 ...
+## done.
+```
+
+```r
+net.d.sub <- asNetwork(g.d.sub)
+cat(sprintf('v = %d, e = %d\n',vcount(g.d.sub),ecount(g.d.sub)))
+```
+
+```
+## v = 116, e = 437
+```
+
+```r
+##------------Network Time Period List--------------------
+nl <- list()
+
+for (t in 2:length(periods)) 
+{
+  ## period dates
+  cat(sprintf('\nmaking period %s-%s:\n', periods[t-1],periods[t]))
+  t1 <- sprintf('%d-01-01',periods[t-1]) ## inclusive start date 'YYYY-MM-DD'
+  t2 <- sprintf('%d-12-31',periods[t-1]) ## inclusive end date 'YYYY-MM-DD'
+  
+  ## check if period network file exists (skip if not force overwrite)
+  file.rds <- sprintf('firm_nets_rnr/%s_d%d_y%s.rds',name_i,d,periods[t-1])
+  if (!force.overwrite & file.exists(file.rds)) {
+    cat(sprintf('file exists: %s\nskipping.\n', file.rds))
+    next
+  }
+  
+  ## 1. Node Collapse acquisitions within period
+  acqs.pd <- cb$co_acq[cb$co_acq$acquired_on >= t1 & cb$co_acq$acquired_on <= t2, ]
+  g.d.sub <- aaf$nodeCollapseGraph(g.d.sub, acqs.pd, verbose = T)
+  
+  ## 2. Subset Period Network
+  nl[[t]] <- aaf$makePdNetwork(asNetwork(g.d.sub), periods[t-1], periods[t], isolates.remove = F) 
+  
+  ## 3. Set Covariates for updated Period Network
+  covlist <- c('age','mmc','dist','ipo_status','constraint','similarity','centrality','generalist')
+  nl[[t]] <- aaf$setCovariates(nl[[t]], periods[t-1], periods[t], covlist=covlist,
+                               acq=cb$co_acq,br=cb$co_br,rou=cb$co_rou,ipo=cb$co_ipo)
+  
+}
+```
+
+```
+## 
+## making period 2005-2006:
+## processing acquisitions: 0 ...
+## done.
+## collecting edges and vertices to remove...done.
+## computing age ...done
+## computing multi-market contact (branch geographic overlap)...no firm branches in period. creating empty mmc matrix...done.
+## done
+## computing distances lag contact...done
+## computing IPO status contact...done
+## computing constraint...done
+## computing inv.log.w.similarity...done
+## computing centralities...done
+## computing Generalist (vs Specialist) Index...done
+## 
+## making period 2006-2007:
+## processing acquisitions: 0 ...
+## done.
+## collecting edges and vertices to remove...done.
+## computing age ...done
+## computing multi-market contact (branch geographic overlap)...no firm branches in period. creating empty mmc matrix...done.
+## done
+## computing distances lag contact...done
+## computing IPO status contact...done
+## computing constraint...done
+## computing inv.log.w.similarity...done
+## computing centralities...done
+## computing Generalist (vs Specialist) Index...done
+## 
+## making period 2007-2008:
+## processing acquisitions: 0 ...
+## done.
+## collecting edges and vertices to remove...done.
+## computing age ...done
+## computing multi-market contact (branch geographic overlap)...no firm branches in period. creating empty mmc matrix...done.
+## done
+## computing distances lag contact...done
+## computing IPO status contact...done
+## computing constraint...done
+## computing inv.log.w.similarity...done
+## computing centralities...done
+## computing Generalist (vs Specialist) Index...done
+## 
+## making period 2008-2009:
+## processing acquisitions: 0 ...
+## done.
+## collecting edges and vertices to remove...done.
+## computing age ...done
+## computing multi-market contact (branch geographic overlap)...concatenating firm branch markets...
+## 
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |================                                                 |  25%
+  |                                                                       
+  |================================                                 |  50%
+  |                                                                       
+  |=================================================                |  75%
+  |                                                                       
+  |=================================================================| 100%
+## computing MMC outer product matrix...done.
+## done
+## computing distances lag contact...done
+## computing IPO status contact...done
+## computing constraint...done
+## computing inv.log.w.similarity...done
+## computing centralities...done
+## computing Generalist (vs Specialist) Index...done
+## 
+## making period 2009-2010:
+## processing acquisitions: 0 ...
+## done.
+## collecting edges and vertices to remove...done.
+## computing age ...done
+## computing multi-market contact (branch geographic overlap)...concatenating firm branch markets...
+## 
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=============                                                    |  20%
+  |                                                                       
+  |==========================                                       |  40%
+  |                                                                       
+  |=======================================                          |  60%
+  |                                                                       
+  |====================================================             |  80%
+  |                                                                       
+  |=================================================================| 100%
+## computing MMC outer product matrix...done.
+## done
+## computing distances lag contact...done
+## computing IPO status contact...done
+## computing constraint...done
+## computing inv.log.w.similarity...done
+## computing centralities...done
+## computing Generalist (vs Specialist) Index...done
+## 
+## making period 2010-2011:
+## processing acquisitions: 0 ...
+## done.
+## collecting edges and vertices to remove...done.
+## computing age ...done
+## computing multi-market contact (branch geographic overlap)...concatenating firm branch markets...
+## 
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=============                                                    |  20%
+  |                                                                       
+  |==========================                                       |  40%
+  |                                                                       
+  |=======================================                          |  60%
+  |                                                                       
+  |====================================================             |  80%
+  |                                                                       
+  |=================================================================| 100%
+## computing MMC outer product matrix...done.
+## done
+## computing distances lag contact...done
+## computing IPO status contact...done
+## computing constraint...done
+## computing inv.log.w.similarity...done
+## computing centralities...done
+## computing Generalist (vs Specialist) Index...done
+## 
+## making period 2011-2012:
+## processing acquisitions: 0 ...
+## done.
+## collecting edges and vertices to remove...done.
+## computing age ...done
+## computing multi-market contact (branch geographic overlap)...concatenating firm branch markets...
+## 
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=============                                                    |  20%
+  |                                                                       
+  |==========================                                       |  40%
+  |                                                                       
+  |=======================================                          |  60%
+  |                                                                       
+  |====================================================             |  80%
+  |                                                                       
+  |=================================================================| 100%
+## computing MMC outer product matrix...done.
+## done
+## computing distances lag contact...done
+## computing IPO status contact...done
+## computing constraint...done
+## computing inv.log.w.similarity...done
+## computing centralities...done
+## computing Generalist (vs Specialist) Index...done
+## 
+## making period 2012-2013:
+## processing acquisitions: 1 ...
+## simplifying edges...done.
+## done.
+## collecting edges and vertices to remove...done.
+## computing age ...done
+## computing multi-market contact (branch geographic overlap)...concatenating firm branch markets...
+## 
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=============                                                    |  20%
+  |                                                                       
+  |==========================                                       |  40%
+  |                                                                       
+  |=======================================                          |  60%
+  |                                                                       
+  |====================================================             |  80%
+  |                                                                       
+  |=================================================================| 100%
+## computing MMC outer product matrix...done.
+## done
+## computing distances lag contact...done
+## computing IPO status contact...done
+## computing constraint...done
+## computing inv.log.w.similarity...done
+## computing centralities...done
+## computing Generalist (vs Specialist) Index...done
+## 
+## making period 2013-2014:
+## processing acquisitions: 0 ...
+## done.
+## collecting edges and vertices to remove...done.
+## computing age ...done
+## computing multi-market contact (branch geographic overlap)...concatenating firm branch markets...
+## 
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=============                                                    |  20%
+  |                                                                       
+  |==========================                                       |  40%
+  |                                                                       
+  |=======================================                          |  60%
+  |                                                                       
+  |====================================================             |  80%
+  |                                                                       
+  |=================================================================| 100%
+## computing MMC outer product matrix...done.
+## done
+## computing distances lag contact...done
+## computing IPO status contact...done
+## computing constraint...done
+## computing inv.log.w.similarity...done
+## computing centralities...done
+## computing Generalist (vs Specialist) Index...done
+## 
+## making period 2014-2015:
+## processing acquisitions: 1 ...
+## simplifying edges...done.
+## done.
+## collecting edges and vertices to remove...done.
+## computing age ...done
+## computing multi-market contact (branch geographic overlap)...concatenating firm branch markets...
+## 
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=============                                                    |  20%
+  |                                                                       
+  |==========================                                       |  40%
+  |                                                                       
+  |=======================================                          |  60%
+  |                                                                       
+  |====================================================             |  80%
+  |                                                                       
+  |=================================================================| 100%
+## computing MMC outer product matrix...done.
+## done
+## computing distances lag contact...done
+## computing IPO status contact...done
+## computing constraint...done
+## computing inv.log.w.similarity...done
+## computing centralities...done
+## computing Generalist (vs Specialist) Index...done
+## 
+## making period 2015-2016:
+## processing acquisitions: 0 ...
+## done.
+## collecting edges and vertices to remove...done.
+## computing age ...done
+## computing multi-market contact (branch geographic overlap)...concatenating firm branch markets...
+## 
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=========                                                        |  14%
+  |                                                                       
+  |===================                                              |  29%
+  |                                                                       
+  |============================                                     |  43%
+  |                                                                       
+  |=====================================                            |  57%
+  |                                                                       
+  |==============================================                   |  71%
+  |                                                                       
+  |========================================================         |  86%
+  |                                                                       
+  |=================================================================| 100%
+## computing MMC outer product matrix...done.
+## done
+## computing distances lag contact...done
+## computing IPO status contact...done
+## computing constraint...done
+## computing inv.log.w.similarity...done
+## computing centralities...done
+## computing Generalist (vs Specialist) Index...done
+## 
+## making period 2016-2017:
+## processing acquisitions: 0 ...
+## done.
+## collecting edges and vertices to remove...done.
+## computing age ...done
+## computing multi-market contact (branch geographic overlap)...concatenating firm branch markets...
+## 
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=========                                                        |  14%
+  |                                                                       
+  |===================                                              |  29%
+  |                                                                       
+  |============================                                     |  43%
+  |                                                                       
+  |=====================================                            |  57%
+  |                                                                       
+  |==============================================                   |  71%
+  |                                                                       
+  |========================================================         |  86%
+  |                                                                       
+  |=================================================================| 100%
+## computing MMC outer product matrix...done.
+## done
+## computing distances lag contact...done
+## computing IPO status contact...done
+## computing constraint...done
+## computing inv.log.w.similarity...done
+## computing centralities...done
+## computing Generalist (vs Specialist) Index...done
+```
+
+```r
+## ----drop null and skipped periods----
+nl.bak <- nl
+nl <- nl[which(sapply(nl, length)>0)]
+
+if (length(nl) > 1) {
+  names(nl) <- periods[2:length(periods)]
+}
+
+##--------------- GET TERGM NETS LIST -----------
+## only nets with edges > 0
+if (length(nl) > 1) {
+  nets.all <- nl[2:length(nl)]
+} else {
+  nets.all <- nl
+}
+nets <- nets.all[ which(sapply(nets.all, aaf$getNetEcount) > 0) ]
+## record network sizes
+write.csv(sapply(nets,function(x)length(x$val)), file = file.path(data_dir,sprintf('%s_d%s.csv',name_i,d)))
+
+#-------------------------------------------------
+
+## Save serialized data file of all networks and covariates lists 
+file.rds <- file.path(data_dir,sprintf('%s_d%d.rds',name_i,d))
+saveRDS(nets, file = file.rds)
+```
+
+
+Finally, compute a new TERGM with the updated data from Owler and CrunchBase using a model that suits your particular hypotheses.  This may take a while to run (a few minutes to a couple hours)  depending upon:
+- network size (number of nodes per network)
+- number of periods (number of network panels)
+- complexity of change statistics to compute for the predictors in the model 
+
+
+```r
+##================================
+##
+## Compute TERGM with New Data (Owler + CrunchBase)
+##
+##--------------------------------
+
+## cache edge covariates list
+mmc <- lapply(nets, function(net) net %n% 'mmc')
+sim <- lapply(nets, function(net) net %n% 'similarity')
+
+m2 <-   nets ~ edges + gwesp(0, fixed = T) + gwdegree(0, fixed=T) + 
+  memory(type = "stability", lag = 1) + 
+  timecov(transform = function(t)t) + 
+  nodematch("ipo_status", diff = F) + 
+  nodecov("age") + absdiff("age") + 
+  nodecov("cent_deg") +
+  nodecov("genidx_multilevel") + 
+  nodecov("constraint") + 
+  nodecov("cent_pow_n0_4") + absdiff("cent_pow_n0_4") + 
+  edgecov(sim) +  edgecov(mmc) + 
+  cycle(3) + cycle(4)  
+## need to add state_code or match regions between Owler & CrunchBase to include in model
+## nodematch("state_code", diff = F)
+
+
+
+## number of bootstrap replicates
+R <- 100
+
+## set pseudorandom number generator seed for reproducibility
+set.seed(1111)
+
+## number of periods in network list
+nPeriods <- length(nets)
+
+## estimate the TERGM with bootstrapped PMLE
+fit2 <- btergm(m2, R=R, parallel = "multicore", ncpus = detectCores())
+```
+
+```
+## Mean transformed timecov values:
+##  t=1 t=2 t=3 t=4 t=5 t=6 t=7 t=8 t=9 t=10 t=11
+##    1   2   3   4   5   6   7   8   9   10   11
+## 
+## Initial dimensions of the network and covariates:
+##                t=2 t=3 t=4 t=5 t=6 t=7 t=8 t=9 t=10 t=11
+## nets (row)     116 116 116 116 116 116 116 116  116  116
+## nets (col)     116 116 116 116 116 116 116 116  116  116
+## memory (row)   116 116 116 116 116 116 116 116  116  116
+## memory (col)   116 116 116 116 116 116 116 116  116  116
+## timecov1 (row) 116 116 116 116 116 116 116 116  116  116
+## timecov1 (col) 116 116 116 116 116 116 116 116  116  116
+## sim (row)      116 116 116 116 116 116 116 116  116  116
+## sim (col)      116 116 116 116 116 116 116 116  116  116
+## mmc (row)      116 116 116 116 116 116 116 116  116  116
+## mmc (col)      116 116 116 116 116 116 116 116  116  116
+## 
+## All networks are conformable.
+## 
+## Dimensions of the network and covariates after adjustment:
+##                t=2 t=3 t=4 t=5 t=6 t=7 t=8 t=9 t=10 t=11
+## nets (row)     116 116 116 116 116 116 116 116  116  116
+## nets (col)     116 116 116 116 116 116 116 116  116  116
+## memory (row)   116 116 116 116 116 116 116 116  116  116
+## memory (col)   116 116 116 116 116 116 116 116  116  116
+## timecov1 (row) 116 116 116 116 116 116 116 116  116  116
+## timecov1 (col) 116 116 116 116 116 116 116 116  116  116
+## sim (row)      116 116 116 116 116 116 116 116  116  116
+## sim (col)      116 116 116 116 116 116 116 116  116  116
+## mmc (row)      116 116 116 116 116 116 116 116  116  116
+## mmc (col)      116 116 116 116 116 116 116 116  116  116
+## 
+## Starting pseudolikelihood estimation with 100 bootstrapping replications using multicore forking on 4 cores...
+## Done.
+```
+
+```r
+print(screenreg(fit2, digits = 3))
+```
+
+```
+## 
+## =========================================================================
+##                            Model 1                                       
+## -------------------------------------------------------------------------
+## edges                                       2.585                        
+##                            [-4534873292706167.000;  4322672539502735.000]
+## gwesp.fixed.0                              -0.457                        
+##                            [ -859530506970358.625;   542409351365140.500]
+## gwdegree                                   -1.677                        
+##                            [ -922829348646105.250;  3065857516197601.000]
+## edgecov.memory[[i]]                         6.909 *                      
+##                            [                5.545;  3487131316037349.500]
+## edgecov.timecov1[[i]]                      -0.409                        
+##                            [ -211450052879646.406;    52037191730159.672]
+## nodematch.ipo_status                        0.610                        
+##                            [ -983563562550868.250;                 0.800]
+## nodecov.age                                -0.005                        
+##                            [   -6505382537519.518;     4483239127262.594]
+## absdiff.age                                 0.000                        
+##                            [   -5844510336660.162;     8988484101002.184]
+## nodecov.cent_deg                            0.117                        
+##                            [  -17925310713664.598;   216797365386821.906]
+## nodecov.genidx_multilevel                  -0.494                        
+##                            [ -294552914451127.938;   936448435020619.250]
+## nodecov.constraint                          0.235                        
+##                            [ -718900690149747.875;  2189364284109573.500]
+## nodecov.cent_pow_n0_4                      -0.018                        
+##                            [ -112648311687055.453;   117032598638855.062]
+## absdiff.cent_pow_n0_4                       0.386                        
+##                            [ -261349075465800.625;   321352473211924.875]
+## edgecov.sim[[i]]                            3.575                        
+##                            [-1706429027307131.750;  1694425134439084.750]
+## edgecov.mmc[[i]]                           31.355                        
+##                            [-1770798207800598.750; 12015211760384590.000]
+## cycle3                                     -0.334                        
+##                            [ -460102559098644.625;  2280983502832442.000]
+## cycle4                                     -0.011                        
+##                            [ -364112300756874.188;   264291561489323.281]
+## -------------------------------------------------------------------------
+## Num. obs.                               36318                            
+## =========================================================================
+## * 0 outside the confidence interval
+```
+
+```r
+## SAVE SERIALIZED DATA
+fit2_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', focal_firm, nPeriods, R, 'm2'))
+saveRDS(fit2, file=fit2_file)
+```
+
+This completes the tutorial.
+
+
 
