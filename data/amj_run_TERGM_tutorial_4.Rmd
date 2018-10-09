@@ -234,7 +234,10 @@ saveRDS(nets, file = file.rds)
 ```
 
 
-Finally, compute a new TERGM with the updated data from Owler and CrunchBase using a model that suits your particular hypotheses
+Finally, compute a new TERGM with the updated data from Owler and CrunchBase using a model that suits your particular hypotheses.  This may take a while to run (a few minutes to a couple hours)  depending upon:
+- network size (number of nodes per network)
+- number of periods (number of network panels)
+- complexity of change statistics to compute for the predictors in the model 
 
 ```{r final_model}
 ##================================
@@ -247,6 +250,7 @@ Finally, compute a new TERGM with the updated data from Owler and CrunchBase usi
 mmc <- lapply(nets, function(net) net %n% 'mmc')
 sim <- lapply(nets, function(net) net %n% 'similarity')
 
+## Set model based upon hypotheses and controls
 m2 <-   nets ~ edges + gwesp(0, fixed = T) + gwdegree(0, fixed=T) + 
   memory(type = "stability", lag = 1) + 
   timecov(transform = function(t)t) + 
@@ -268,6 +272,9 @@ R <- 100
 
 ## set pseudorandom number generator seed for reproducibility
 set.seed(1111)
+
+## number of periods in network list
+nPeriods <- length(nets)
 
 ## estimate the TERGM with bootstrapped PMLE
 fit2 <- btergm(m2, R=R, parallel = "multicore", ncpus = detectCores())
