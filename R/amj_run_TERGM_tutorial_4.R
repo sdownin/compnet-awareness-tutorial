@@ -191,8 +191,11 @@ file.rds <- file.path(data_dir,sprintf('%s_d%d.rds',name_i,d))
 saveRDS(nets, file = file.rds)
 
 
+
 ##================================
-## Compute A Model with New Data
+##
+## Compute TERGM with New Data (Owler + CrunchBase)
+##
 ##--------------------------------
 
 ## cache edge covariates list
@@ -203,7 +206,6 @@ m2 <-   nets ~ edges + gwesp(0, fixed = T) + gwdegree(0, fixed=T) +
   memory(type = "stability", lag = 1) + 
   timecov(transform = function(t)t) + 
   nodematch("ipo_status", diff = F) + 
-  #nodematch("state_code", diff = F) + 
   nodecov("age") + absdiff("age") + 
   nodecov("cent_deg") +
   nodecov("genidx_multilevel") + 
@@ -211,6 +213,9 @@ m2 <-   nets ~ edges + gwesp(0, fixed = T) + gwdegree(0, fixed=T) +
   nodecov("cent_pow_n0_4") + absdiff("cent_pow_n0_4") + 
   edgecov(sim) +  edgecov(mmc) + 
   cycle(3) + cycle(4)  
+## need to add state_code or match regions between Owler & CrunchBase to include in model
+## nodematch("state_code", diff = F)
+
 
 
 ## number of bootstrap replicates
@@ -222,8 +227,10 @@ set.seed(1111)
 ## estimate the TERGM with bootstrapped PMLE
 fit2 <- btergm(m2, R=R, parallel = "multicore", ncpus = detectCores())
 
+print(screenreg(fit2, digits = 3))
+
 ## SAVE SERIALIZED DATA
-fit2_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', firm_i, nPeriods, R, 'm0'))
+fit2_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', focal_firm, nPeriods, R, 'm2'))
 saveRDS(fit2, file=fit2_file)
 
 
