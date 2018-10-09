@@ -1559,8 +1559,11 @@ for (file in dir(owler_dir, pattern = '\\.csv$')) {
   full_file_path <- file.path(owler_dir, file)
   df <- read.csv(full_file_path, stringsAsFactors = F, na.strings = na.strings)
   
+  ## competitor columns
+  compcols <- names(df)[grep('competitor_\\d{1,}',x = names(df))]
+
   ## keep columns that are NOT missing all competiors 
-  rows.keep <- apply(df[names(df)[grep('competitor_\\d{1,}',x = names(df))]], 1, function(x) !all(is.na(x)))
+  rows.keep <- apply(df[,compcols], 1, function(x) !all(is.na(x)))
   df <- df[rows.keep,]
   
   ## assign company_name_unique if not exists
@@ -1569,7 +1572,7 @@ for (file in dir(owler_dir, pattern = '\\.csv$')) {
   
   ## if no competitor data columns or missing company_name_unique column, 
   ## then skip to next data file
-  if (length(compcols)==0 | !('company_name_unique' %in% names(df)))
+  if (!('company_name_unique' %in% names(df)))
     next
   
   ## append verices
@@ -1616,6 +1619,7 @@ for (file in dir(owler_dir, pattern = '\\.csv$')) {
   }
   
 }
+
 
 
 ## check vertices

@@ -13,6 +13,7 @@
 library(btergm)
 library(parallel)
 library(texreg)
+library(stringr)
 
 
 ##===============================
