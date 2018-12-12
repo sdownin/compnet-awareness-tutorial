@@ -2294,7 +2294,7 @@ Next, in [Part 5](#part-5-analyzing-your-network-with-updated-data  "Part 5") re
 
 
 
-# Part 4: Computing Period Networks and Covariate Lists
+# Part 5: Analyzing Your Network with Updated Data
 
 > [Back to Contents](#contents  "Back")
 
