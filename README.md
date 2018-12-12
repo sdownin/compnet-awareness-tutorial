@@ -1512,7 +1512,7 @@ print(net[1:4,1:4])
 ## allegiance                  0         0       0          0
 ```
 
-After saving the CSV data files in the the new `owler_dir`, you can run the `s` script to process and combine the file(s). 
+After saving the CSV data files in the the new `owler_dir`, you can run the `amj_run_TERGM_tutorial_3.R` script to process and combine the file(s). 
 
 This script will create (or overwrite) 2 new files in your `data_dir`
  - `owler_edge_list` Edge list of competitive relations
