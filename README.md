@@ -19,6 +19,7 @@ This research was supported in part by MOST-105-2420-H-009-012-DR and  MOST-106-
 - [Part 2: Goodness of Fit, Degeneracy, Estimation Algorithm](#part-2-goodness-of-fit-degeneracy-estimation-algorithm  "Part 2")
 - [Part 3: Adding and Cleaning New data](#part-3-adding-and-cleaning-new-data  "Part 3")
 - [Part 4: Computing Period Networks and Covariate Lists](#part-4-computing-period-networks-and-covariate-lists  "Part 4")
+- [Part 5: Analyzing Your Network with Updated Data](#part-5-analyzing-your-network-with-updated-data  "Part 5")
 
 
 # Part 1: Analyzing Example Network Data Sample
@@ -2285,6 +2286,17 @@ write.csv(sapply(nets,function(x)length(x$val)), file = file.path(data_dir,sprin
 file.rds <- file.path(data_dir,sprintf('%s_d%d.rds',name_i,d))
 saveRDS(nets, file = file.rds)
 ```
+
+Next, in [Part 5](#part-5-analyzing-your-network-with-updated-data  "Part 5") recompute a TERGM with the udpated data you just computed.
+
+
+> [Back to Contents](#contents  "Back")
+
+
+
+# Part 4: Computing Period Networks and Covariate Lists
+
+> [Back to Contents](#contents  "Back")
 
 
 Finally, compute a new TERGM with the updated data from Owler and CrunchBase using a model that suits your particular hypotheses.  This may take a while to run (a few minutes to a couple hours)  depending upon:

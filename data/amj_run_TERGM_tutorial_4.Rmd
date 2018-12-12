@@ -1,11 +1,23 @@
-####################################################
-##
-## Competition Network Analysis Tutorial
-##
-## Part 4. Compute Period Networks and Covarites Lists
-##
-####################################################
+---
+title: "amj_run_TERGM_tutorial_4.R"
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Part 4: Computing Period Networks and Covariate Lists
+
+In this repository's `R` directory, download the R script `amj_run_TERGM_tutorial_4.R`. 
+
+Save the CrunchBase data export in your system and set the `cb_data_dir` parameter to point to the root of the CrunchBase data directory.   
+
+
+```{r set_data_dirs}
 ##===============================
 ## If the required libraries are not installed on your computer, run:
 ## >  install.packages(c('btergm','parallel','texreg'))
@@ -13,9 +25,9 @@
 library(btergm)
 library(parallel)
 library(texreg)
-library(lubridate)
-library(plyr)
 library(reshape2)
+library(plyr)
+library(lubridate)
 
 ##===============================
 ## SET YOUR DIRECTORIES:
@@ -23,18 +35,31 @@ library(reshape2)
 ##   If you are using a Windows PC, use double backslash path separators "..\\dir\\subdir\\.."
 ##-------------------------------
 ## working dir
-work_dir <- 'C:/Users/T430/Google Drive/PhD/Dissertation/competition networks/compnet-awareness-tutorial'
+work_dir <- '/set/working/dir'
 
 ## new data directory name
-cb_data_dir <- "C:/Users/T430/Google Drive/PhD/Dissertation/crunchbase/crunchbase_export_20161024"
+cb_data_dir <- '/set/data/dir'
 
 ## owler data directory name
 owler_data_dir_name <- 'owler_data'
 
 ## SET FOCAL FIRM
-focal_firm <- 'ford'
+focal_firm <- 'ford' ## your focal firm
+
+```
 
 
+
+```{r pressure, echo=FALSE}
+work_dir <- 'C:/Users/T430/Google Drive/PhD/Dissertation/competition networks/compnet-awareness-tutorial'
+
+cb_data_dir <- "C:/Users/T430/Google Drive/PhD/Dissertation/crunchbase/crunchbase_export_20161024"
+
+```
+
+Set relative paths for data
+
+```{r rel_paths}
 ##================================
 ## Relative paths based on above directories
 ##--------------------------------
@@ -43,7 +68,15 @@ data_dir <- file.path(work_dir, 'data')
 
 ## new data directory name
 owler_data_dir <- file.path(data_dir, owler_data_dir_name)
+```
 
+Load `R` scripts:
+- `amj_awareness_functions.R` loads functions for data processing; cached in environment as [list] `aaf`
+- `amj_tutorial_cb_data_prep.R` loads data tables; cached in environment as [list] `cb`
+
+This will take several minutes to complete.
+
+```{r load_scripts}
 ##==================================================
 ## Run data loading and prep scripts
 ##--------------------------------------------------
@@ -52,7 +85,11 @@ source(file.path(work_dir,'R','amj_tutorial_cb_data_prep.R'))  ## cb:  CrunchBas
 
 print(summary(aaf))
 print(summary(cb))
+```
 
+Create the full competition network (graph) for all competitive relations at all times. The following step after this will then create competition network panels with one competition network per time period by removing the relations and firms that didn't exist during that period.
+
+```{r make_full_graph}
 ##==================================================
 ##
 ##  Make Full Graph
@@ -85,9 +122,16 @@ g.full <- igraph::simplify(g.full, remove.loops=T,remove.multiple=T,
 igraph::write.graph(graph = g.full, file=file.path(data_dir, "g_full.graphml"), format = 'graphml')
 
 cat('done.\n')
+```
 
+The main data preparation step involves using the full competition network and running a 3-step procedure to compute temporal panel data of competition networks and covariate arrays for each period.
 
+The steps apply functions loaded in the `aaf` object for each period in the analysis time frame:
+1. `aaf$nodeCollapseGraph(...)` Process acquisitions by transferring competitive relations from acquisition target to acquiring firm for each period
+2. `aaf$makePdNetwork(...)` Filter the competitive relations and firms that existed within each period
+3. `aaf$setCovariates(...)`  Compute node and edge covariates from the updated period competition network and set the covariates in this period's `network` object
 
+```{r main_create_period_networks}
 ##==================================================
 ##
 ##  Create Focal Firm Networks per time period
@@ -96,10 +140,8 @@ cat('done.\n')
 ##
 ##--------------------------------------------------
 
-
-
 ## -- settings --
-d <- 100                 ## distance threshold for cohort selection
+d <- 3                   ## distance threshold for cohort selection
 yrpd <- 1                ## length of period in years
 startYr <- 2005          ## starting year (including 1 previous year for lag)
 endYr <- 2017            ## dropping first for memory term; actual dates 2007-2016
@@ -189,9 +231,15 @@ write.csv(sapply(nets,function(x)length(x$val)), file = file.path(data_dir,sprin
 ## Save serialized data file of all networks and covariates lists 
 file.rds <- file.path(data_dir,sprintf('%s_d%d.rds',name_i,d))
 saveRDS(nets, file = file.rds)
+```
 
 
+Finally, compute a new TERGM with the updated data from Owler and CrunchBase using a model that suits your particular hypotheses.  This may take a while to run (a few minutes to a couple hours)  depending upon:
+- network size (number of nodes per network)
+- number of periods (number of network panels)
+- complexity of change statistics to compute for the predictors in the model 
 
+```{r final_model}
 ##================================
 ##
 ## Compute TERGM with New Data (Owler + CrunchBase)
@@ -202,35 +250,28 @@ saveRDS(nets, file = file.rds)
 mmc <- lapply(nets, function(net) net %n% 'mmc')
 sim <- lapply(nets, function(net) net %n% 'similarity')
 
+## Set model based upon hypotheses and controls
 m2 <-   nets ~ edges + gwesp(0, fixed = T) + gwdegree(0, fixed=T) + 
   memory(type = "stability", lag = 1) + 
   timecov(transform = function(t)t) + 
   nodematch("ipo_status", diff = F) + 
   nodecov("age") + absdiff("age") + 
-  nodecov("cent_deg") +
   nodecov("genidx_multilevel") + 
-  nodecov("constraint") + 
   nodecov("cent_pow_n0_4") + absdiff("cent_pow_n0_4") + 
-  edgecov(sim) +  edgecov(mmc) + 
-  cycle(3) + cycle(4)  
+  # edgecov(sim) + edgecov(mmc) + 
+  cycle(3) #+ cycle(4)  
 ## need to add state_code or match regions between Owler & CrunchBase to include in model
 ## nodematch("state_code", diff = F)
 
-
-## check predictors data descriptive stats
-tmp <- btergm(m2, R=5, parallel = "multicore", ncpus = detectCores())
-png(filename = file.path(data_dir,'TERGM_predictors_descriptives.png'), width = 8, height = 8, units = 'in', res = 250)
-  par(mfrow=c(3,3))
-  for (name in names(tmp@effects)) {
-    hist(tmp@effects[,name], col='gray', main=name)
-  }
-dev.off()
 
 ## number of bootstrap replicates
 R <- 100
 
 ## set pseudorandom number generator seed for reproducibility
 set.seed(1111)
+
+## number of periods in network list
+nPeriods <- length(nets)
 
 ## estimate the TERGM with bootstrapped PMLE
 fit2 <- btergm(m2, R=R, parallel = "multicore", ncpus = detectCores())
@@ -240,6 +281,27 @@ print(screenreg(fit2, digits = 3))
 ## SAVE SERIALIZED DATA
 fit2_file <- file.path(data_dir,sprintf('fit_%s_pd%s_R%s_%s.rds', focal_firm, nPeriods, R, 'm2'))
 saveRDS(fit2, file=fit2_file)
+
+
+
+
+```
+
+This completes the tutorial.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
